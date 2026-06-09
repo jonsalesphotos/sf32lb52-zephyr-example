@@ -1,156 +1,78 @@
-# nRF Connect SDK example application
+# SF32LB52 Zephyr Example
 
-<a href="https://github.com/nrfconnect/ncs-example-application/actions/workflows/build-using-docker.yml?query=branch%3Amain">
-  <img src="https://github.com/nrfconnect/ncs-example-application/actions/workflows/build-using-docker.yml/badge.svg?event=push">
-</a>
-<a href="https://github.com/nrfconnect/ncs-example-application/actions/workflows/docs.yml?query=branch%3Amain">
-  <img src="https://github.com/nrfconnect/ncs-example-application/actions/workflows/docs.yml/badge.svg?event=push">
-</a>
-<a href="https://nrfconnect.github.io/ncs-example-application">
-  <img alt="Documentation" src="https://img.shields.io/badge/documentation-3D578C?logo=sphinx&logoColor=white">
-</a>
-<a href="https://nrfconnect.github.io/ncs-example-application/doxygen">
-  <img alt="API Documentation" src="https://img.shields.io/badge/API-documentation-3D578C?logo=c&logoColor=white">
-</a>
+This repository contains a Zephyr demo application for SiFli SF32 series
+devices, currently targeting the `sf32lb52_hspi` board.
 
-This repository contains an nRF Connect SDK example application. The main
-purpose of this repository is to serve as a reference on how to structure nRF Connect
-SDK based applications. Some of the features demonstrated in this example are:
+The demo is based on Zephyr's workspace application layout and uses a west
+manifest to pull the SiFli Zephyr downstream tree and required modules.
 
-- Basic [Zephyr application][app_dev] skeleton
-- [Zephyr workspace applications][workspace_app]
-- [Zephyr modules][modules]
-- [West T2 topology][west_t2]
-- [Custom boards][board_porting]
-- Custom [devicetree bindings][bindings]
-- Out-of-tree [drivers][drivers]
-- Out-of-tree libraries
-- Example CI configuration (using GitHub Actions)
-- Custom [west extension][west_ext]
-- Custom [Zephyr runner][runner_ext]
-- Doxygen and Sphinx documentation boilerplate
+## Project Purpose
 
-This repository is versioned together with the [nRF Connect SDK main tree][sdk-nrf]. This
-means that every time that nRF Connect SDK is tagged, this repository is tagged as well
-with the same version number, and the [manifest](west.yml) entry for `zephyr`
-will point to the corresponding nRF Connect SDK tag. For example, the `ncs-example-application`
-v2.5.0 will point to nRF Connect SDK v2.5.0. Note that the `main` branch always
-points to the development branch of nRF Connect SDK, also `main`.
+This project is intended as a small starting point for SF32LB52 development:
 
-[app_dev]: https://docs.zephyrproject.org/latest/develop/application/index.html
-[workspace_app]: https://docs.zephyrproject.org/latest/develop/application/index.html#zephyr-workspace-app
-[modules]: https://docs.zephyrproject.org/latest/develop/modules.html
-[west_t2]: https://docs.zephyrproject.org/latest/develop/west/workspaces.html#west-t2
-[board_porting]: https://docs.zephyrproject.org/latest/guides/porting/board_porting.html
-[bindings]: https://docs.zephyrproject.org/latest/guides/dts/bindings.html
-[drivers]: https://docs.zephyrproject.org/latest/reference/drivers/index.html
-[sdk-nrf]: https://github.com/nrfconnect/sdk-nrf
-[west_ext]: https://docs.zephyrproject.org/latest/develop/west/extensions.html
-[runner_ext]: https://docs.zephyrproject.org/latest/develop/modules.html#external-runners
+- `app/` contains the demo firmware application.
+- `boards/sifli/sf32lb52_hspi/` contains the custom board definition.
+- `west.yml` selects the OpenSiFli Zephyr downstream and required modules.
 
-## Getting started
+The current application prints the selected Zephyr board target once per
+second.
 
-Before getting started, make sure you have a proper nRF Connect SDK development environment.
-Follow the official
-[Installation guide](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/nrf/installation/install_ncs.html).
+## Target Board
 
-### Initialization
+- Board: `sf32lb52_hspi`
+- Full name: HSPI-SF32LB52 (Huangshan Pi)
+- SoC: `sf32lb525uc6`
+- Vendor: SiFli
 
-This section represents alternative approaches for initializing the workspace.
+## Getting Started
 
-#### Initialize workspace from scratch
-
-The first step is to initialize the workspace folder (``ncs``) where
-the ``ncs-example-application`` and all nRF Connect SDK modules will be cloned.
-Run the following commands:
+Install the standard Zephyr development tools first, including Python, CMake,
+Ninja, a supported ARM toolchain, and `west`.
 
 ```shell
-# Initialize ncs for the ncs-example-application (main branch)
-west init -m https://github.com/nrfconnect/ncs-example-application --mr main ncs
-# Update nRF Connect SDK modules
-cd ncs
+pip install west
+```
+
+### Initialize a New Workspace
+
+```shell
+west init -m https://github.com/jonsalesphotos/sf32lb52-zephyr-example --mr main sf32lb52-zephyr-workspace
+cd sf32lb52-zephyr-workspace
 west update
 ```
 
-#### Add application into existing nRF Connect SDK workspace
+After `west update`, the workspace will contain this application repository,
+the OpenSiFli Zephyr downstream tree, and the modules allowed by `west.yml`.
 
-Assume you have an existing nRF Connect SDK workspace in the ``ncs`` folder. Run the following commands:
+### Build
 
-```shell
-# Navigate to the workspace folder
-cd ncs
-# Clone application repository
-git clone https://github.com/nrfconnect/ncs-example-application
-# Set manifest path to the application directory
-west config manifest.path ncs-example-application
-# Update nRF Connect SDK modules
-west update
-```
-
-### Building and running
-
-To build the application, run the following command:
+From the west workspace root:
 
 ```shell
-cd example-application
-west build -b $BOARD app
+west build -b sf32lb52_hspi sf32lb52-zephyr-example/app
 ```
 
-where `$BOARD` is the target board.
-
-You can use the `custom_plank` board found in this repository. Note that you can use
-Zephyr and nRF Connect SDK sample boards if an appropriate overlay is provided (see `app/boards`).
-
-A sample debug configuration is also provided. To apply it, run the following
-command:
+To rebuild from scratch:
 
 ```shell
-west build -b $BOARD app -- -DEXTRA_CONF_FILE=debug.conf
+west build -b sf32lb52_hspi sf32lb52-zephyr-example/app -p always
 ```
 
-Once you have built the application, run the following command to flash it:
+### Flash
+
+After a successful build, flash with:
 
 ```shell
 west flash
 ```
 
-### Testing
+The exact flashing behavior depends on the board runner and debug adapter
+configuration available in the local Zephyr environment.
 
-To execute Twister integration tests, run the following command:
+## Repository Notes
 
-```shell
-west twister -T tests --integration
-```
+This repository intentionally does not include generated build output. Local
+build directories such as `app/build` are ignored by Git.
 
-### Documentation
-
-A minimal documentation setup is provided for Doxygen and Sphinx. To build the
-documentation first change to the ``doc`` folder:
-
-```shell
-cd doc
-```
-
-Before continuing, check if you have Doxygen installed. It is recommended to
-use the same Doxygen version used in [CI](.github/workflows/docs.yml). To
-install Sphinx, make sure you have a Python installation in place and run:
-
-```shell
-pip install -r requirements.txt
-```
-
-API documentation (Doxygen) can be built using the following command:
-
-```shell
-doxygen
-```
-
-The output will be stored in the ``_build_doxygen`` folder. Similarly, the
-Sphinx documentation (HTML) can be built using the following command:
-
-```shell
-make html
-```
-
-The output will be stored in the ``_build_sphinx`` folder. You may check for
-other output formats other than HTML by running ``make help``.
+The original template GitHub Actions workflows were removed because this demo
+does not use the Nordic CI setup.
