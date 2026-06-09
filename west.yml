@@ -6,12 +6,33 @@ manifest:
     west-commands: scripts/west-commands.yml
 
   remotes:
-    - name: ncs
-      url-base: https://github.com/nrfconnect
+    - name: opensifli
+      url-base: https://github.com/OpenSiFli
+    - name: lvgl
+      url-base: https://github.com/lvgl
 
   projects:
-    - name: nrf
-      remote: ncs
-      repo-path: sdk-nrf
+    - name: lvgl
+      remote: lvgl
+      repo-path: lvgl
+      revision: 85aa60d18b3d5e5588d7b247abf90198f07c8a63
+      path: modules/lib/gui/lvgl
+
+    - name: zephyr
+      remote: opensifli
+      repo-path: zephyr-downstream
       revision: main
-      import: true
+      import:
+        # Keep only the modules needed for SiFli SF32LB52x targets and app features.
+        name-allowlist:
+          - cmsis_6    # required by the ARM Cortex-M port
+          - hal_sifli  # required by SiFli SF32LB52x SoCs
+          - cmsis-dsp  # optional DSP/math acceleration
+          - cmsis-nn   # optional neural network kernels
+          - fatfs      # optional FAT filesystem support
+          - littlefs   # optional flash-friendly filesystem support
+          - lvgl       # optional GUI support
+          - mcuboot    # optional bootloader/OTA image support
+          - nanopb     # optional protobuf serialization support
+          - zcbor      # optional CBOR serialization support
+
