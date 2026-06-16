@@ -58,6 +58,12 @@ To rebuild from scratch:
 west build -b sf32lb52_hspi sf32lb52-zephyr-example/app -p always
 ```
 
+Windows example from this workspace:
+
+```powershell
+west build --build-dir e:/sf32lb52-zephyr-example/application/app/build e:/sf32lb52-zephyr-example/application/app --pristine --board sf32lb52_hspi/sf32lb525uc6 -- -DNCS_TOOLCHAIN_VERSION="NONE" -DDEBUG_THREAD_INFO=On -DCONFIG_DEBUG_OPTIMIZATIONS=y -DCONFIG_DEBUG_THREAD_INFO=y -DBOARD_ROOT=e:/sf32lb52-zephyr-example/application
+```
+
 ### Flash
 
 After a successful build, flash with:
@@ -66,8 +72,28 @@ After a successful build, flash with:
 west flash
 ```
 
+Windows example using the generated build directory:
+
+```powershell
+west flash -d e:\sf32lb52-zephyr-example\application\app\build --port=COM7
+```
+
+Replace `COM7` with the serial port assigned to the board. To erase all flash
+regions before programming, add `--erase`:
+
+```powershell
+west flash -d e:\sf32lb52-zephyr-example\application\app\build --port=COM7 --erase
+```
+
 The exact flashing behavior depends on the board runner and debug adapter
 configuration available in the local Zephyr environment.
+
+### VS Code Tasks
+
+This repository keeps a Git-tracked VS Code task template at
+`vscode/tasks.json`. The local `.vscode/tasks.json` file can use the same
+tasks for `SF32: Build`, `SF32: Flash`, and `SF32: Erase and Flash`, while
+`.vscode/` stays ignored for editor-local settings.
 
 ## Repository Notes
 

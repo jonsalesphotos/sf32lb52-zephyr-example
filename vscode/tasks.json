@@ -1,0 +1,75 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "SF32: Build",
+            "type": "shell",
+            "command": "west",
+            "detail": "Pristine build for sf32lb52_hspi/sf32lb525uc6.",
+            "args": [
+                "build",
+                "--build-dir",
+                "${workspaceFolder}/app/build",
+                "${workspaceFolder}/app",
+                "--pristine",
+                "--board",
+                "sf32lb52_hspi/sf32lb525uc6",
+                "--",
+                "-DNCS_TOOLCHAIN_VERSION=NONE",
+                "-DDEBUG_THREAD_INFO=On",
+                "-DCONFIG_DEBUG_OPTIMIZATIONS=y",
+                "-DCONFIG_DEBUG_THREAD_INFO=y",
+                "-DBOARD_ROOT=${workspaceFolder}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "SF32: Flash",
+            "type": "shell",
+            "command": "west",
+            "detail": "Flash the existing SF32 build with sftool.",
+            "args": [
+                "flash",
+                "-d",
+                "${workspaceFolder}/app/build",
+                "--port=${input:sf32SerialPort}"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "SF32: Erase and Flash",
+            "type": "shell",
+            "command": "west",
+            "detail": "Erase all SF32 flash regions before programming.",
+            "args": [
+                "flash",
+                "-d",
+                "${workspaceFolder}/app/build",
+                "--port=${input:sf32SerialPort}",
+                "--erase"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "SF32: Build and Flash",
+            "dependsOn": [
+                "SF32: Build",
+                "SF32: Flash"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "sf32SerialPort",
+            "type": "promptString",
+            "description": "SF32 serial port",
+            "default": "COM7"
+        }
+    ]
+}
