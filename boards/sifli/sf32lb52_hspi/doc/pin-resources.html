@@ -410,7 +410,7 @@
         </div>
         <div class="meta">
           <strong>本地资料</strong>
-          <span>核心板 PDF 9 页，LCD 板 PDF 1 页，含网表和 BOM</span>
+          <span>原理图、网表、BOM、芯片/模组手册和模组设计资料</span>
         </div>
         <div class="meta">
           <strong>更新日期</strong>
@@ -430,14 +430,19 @@
           <p class="small">用于 68P 模组、30P 排针、22P QSPI FPC、供电、充电、电池、LCD、音频等描述。页面页脚显示更新于 2025-06-26。</p>
         </li>
         <li>
+          <strong>SiFli 官方开发板页</strong>
+          <a href="https://wiki.sifli.com/board/sf32lb52x/SF32LB52-%E9%BB%84%E5%B1%B1%E6%B4%BE.html">立创·黄山派开发板使用指南</a>
+          <p class="small">用于同步官方开发板版本、屏幕/触摸/传感器/电源器件型号，以及 GPIO、30P 排针、22P QSPI FPC 定义。</p>
+        </li>
+        <li>
           <strong>立创开源硬件平台工程</strong>
           <a href="https://oshwhub.com/li-chuang-kai-fa-ban/li-chuang-huang-shan-pai-sf32lb52-kai-fa-ban-v1-2">立创·黄山派SF32LB52开发板</a>
           <p class="small">页面元数据：公开工程，许可证 GPL 3.0，介绍为低功耗多媒体显示蓝牙开发板，软硬件全部开源。</p>
         </li>
         <li>
           <strong>本地原理图与网表</strong>
-          <a href="./SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf">核心板原理图 PDF</a>，
-          <a href="./SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf">LCD 屏幕板原理图 PDF</a>，
+          <a href="./PDF_立创·黄山派SF32LB52开发板/SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf">核心板原理图 PDF</a>，
+          <a href="./PDF_立创·黄山派SF32LB52开发板/SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf">LCD 屏幕板原理图 PDF</a>，
           <a href="./Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel">核心板网表</a>，
           <a href="./Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel">LCD 屏幕板网表</a>
           <p class="small">排针和 FPC 的最终连线优先按本地网表核对。</p>
@@ -466,15 +471,17 @@
         <div class="resource-card">
           <strong>显示与触摸</strong>
           <ul>
+            <li>1.85 inch AMOLED：<code>ZC-A1D85W-010</code>，分辨率 <code>390 x 450</code>。</li>
+            <li>屏幕驱动 IC：<code>CO5300AF-01</code>；屏幕电源 IC：<code>BV6802W</code>。</li>
+            <li>触摸 IC：<code>FT6146-M00</code>，接口使用 <code>PA_33</code> SDA、<code>PA_37</code> SCL、<code>PA_41</code> INT、<code>PA_09</code> RST。</li>
             <li>22P 0.5 pitch QSPI 屏幕 FPC，信号包含 QSPI D0-D3、CLK、CS、TE、RST、BL PWM。</li>
-            <li>触摸屏接口使用 <code>PA_33</code> SDA、<code>PA_37</code> SCL、<code>PA_41</code> INT、<code>PA_09</code> RST。</li>
-            <li>当前 DTS 选择 <code>co5300</code> QSPI display，分辨率 <code>390 x 450</code>。</li>
+            <li>当前 DTS 选择 <code>co5300</code> QSPI display。</li>
           </ul>
         </div>
         <div class="resource-card">
           <strong>USB、串口与调试</strong>
           <ul>
-            <li>一路 Type-C 通过 USB 转串口芯片用于下载和软件调试。</li>
+            <li>一路 Type-C 通过 <code>CH340N</code> USB 转串口芯片用于下载和软件调试。</li>
             <li>一路 USB 2.0 FS Type-C，同时可供电。</li>
             <li>调试串口：<code>PA_19</code> TXD、<code>PA_18</code> RXD，当前 Zephyr 控制台速率 <code>1000000</code>。</li>
           </ul>
@@ -484,7 +491,8 @@
           <ul>
             <li>供电方式：USB Type-C 或单节锂电池。</li>
             <li>30P 排针引出 <code>USB_VBUS_5V</code>、<code>VBAT/VBAT_S</code>、<code>VSYS/VSYS_S</code>、<code>VCC_3V3/VCC_3V3_S</code>。</li>
-            <li>板载 AW23001ECSR 线性充电芯片，官方文档描述最大 500 mA、默认 450 mA。</li>
+            <li>板载 <code>SY6103</code> 线性充电芯片，官方文档描述最大 500 mA、默认 450 mA。</li>
+            <li>官方资料列出 <code>SY5320</code> 过压保护、<code>LP5240HVF</code> 负载开关、<code>ETA5055V330DS2F</code> 3.3 V LDO。</li>
           </ul>
         </div>
         <div class="resource-card">
@@ -500,7 +508,8 @@
           <ul>
             <li>Micro SD 卡槽，使用 SPI1：<code>PA_24</code> DO、<code>PA_25</code> DI、<code>PA_28</code> CLK、<code>PA_29</code> CS。</li>
             <li>30P 排针引出 USB、I2C、SPI、按键、马达 PWM、电源分流测试点。</li>
-            <li>开源页介绍板载九轴、充放电、音频等外设；网表中可见传感器、充电、RGB LED、按键和马达相关网络。</li>
+            <li>官方资料列出六轴 <code>LSM6DS3TR-C</code>、地磁 <code>MMC5603NJ</code>、光照 <code>LTR-303ALS-01</code>。</li>
+            <li>板载 <code>SK6812MINI-HS</code> RGB LED、按键、振动马达、TF 卡和音频功放。</li>
           </ul>
         </div>
       </div>
@@ -517,19 +526,19 @@
           </thead>
           <tbody>
             <tr><td>LCD QSPI 显示</td><td><code>PA_00</code> RST，<code>PA_01</code> BL_PWM，<code>PA_02</code> TE，<code>PA_03</code> CS，<code>PA_04</code> CLK，<code>PA_05</code> D0，<code>PA_06</code> D1，<code>PA_07</code> D2，<code>PA_08</code> D3</td><td>22P QSPI FPC</td><td>占用后不能同时作为普通 GPIO；当前 DTS 已启用 QSPI 显示核心信号，背光 <code>PA_01</code> 待补。</td></tr>
-            <tr><td>触摸屏接口</td><td><code>PA_33</code> SDA，<code>PA_37</code> SCL，<code>PA_41</code> INT，<code>PA_09</code> RST</td><td>22P QSPI FPC</td><td>触摸驱动未启用前可借用，但装屏和触摸后应保留；当前 DTS 的 SCL/AVDD 配置需要修正。</td></tr>
+            <tr><td>触摸屏接口</td><td><code>PA_33</code> SDA，<code>PA_37</code> SCL，<code>PA_41</code> INT，<code>PA_09</code> RST</td><td><code>FT6146-M00</code>，22P QSPI FPC</td><td>触摸驱动未启用前可借用，但装屏和触摸后应保留；当前 DTS 的 SCL/AVDD 配置需要修正。</td></tr>
             <tr><td>Micro SD / TF 卡</td><td><code>PA_24</code> DO，<code>PA_25</code> DI，<code>PA_28</code> CLK，<code>PA_29</code> CS，<code>PA_27</code> DET</td><td>板载 TF 卡座，30P pin 20/22/21/19/23</td><td>使用 30P 扩展 SPI 时会和板载 TF 卡冲突；若作 GPIO，TF 卡功能不可用。</td></tr>
-            <tr><td>调试 UART / 下载</td><td><code>PA_19</code> TXD，<code>PA_18</code> RXD</td><td>USB 转串口芯片，30P pin 25/27</td><td>建议保留作 console/shell/download；复用会影响调试和烧录体验。</td></tr>
+            <tr><td>调试 UART / 下载</td><td><code>PA_19</code> TXD，<code>PA_18</code> RXD</td><td><code>CH340N</code> USB 转串口芯片，30P pin 25/27</td><td>建议保留作 console/shell/download；复用会影响调试和烧录体验。</td></tr>
             <tr><td>USB 2.0 FS</td><td><code>PA_35</code> DP，<code>PA_36</code> DM</td><td>USB Type-C，30P pin 15/13</td><td>若启用 USB 设备功能，这两脚不能作普通 GPIO。</td></tr>
             <tr><td>KEY1 / PWRKEY</td><td><code>PA_34</code></td><td>SW1，30P pin 26</td><td>开关机/长按复位相关；复用会影响按键和电源控制交互。</td></tr>
             <tr><td>KEY2</td><td><code>PA_43</code></td><td>SW2，30P pin 28</td><td>功能按键；当前 DTS 误配到 <code>PA_11</code>，应改到 <code>PA_43</code>。</td></tr>
-            <tr><td>充电 IC I2C</td><td><code>PA_11</code> SDA，<code>PA_10</code> SCL</td><td>充电芯片，30P pin 29/30</td><td>复用会影响充电状态/配置读取；当前 DTS 中 <code>PA_10</code>/<code>PA_11</code> 被其他功能误占。</td></tr>
-            <tr><td>板上传感器 I2C</td><td><code>PA_39</code> SDA，<code>PA_40</code> SCL，<code>PA_31</code> INT1</td><td>板载传感器，30P pin 14/16，引脚 <code>PA_31</code> 未引出到 30P</td><td>不用板上传感器时可考虑复用；传感器型号和地址待由 BOM/实物继续确认。</td></tr>
+            <tr><td>充电 IC I2C</td><td><code>PA_11</code> SDA，<code>PA_10</code> SCL</td><td><code>SY6103</code> 充电芯片，30P pin 29/30</td><td>复用会影响充电状态/配置读取；当前 DTS 中 <code>PA_10</code>/<code>PA_11</code> 被其他功能误占。</td></tr>
+            <tr><td>板上传感器 I2C</td><td><code>PA_39</code> SDA，<code>PA_40</code> SCL，<code>PA_31</code> INT1</td><td><code>LSM6DS3TR-C</code> / <code>MMC5603NJ</code> / <code>LTR-303ALS-01</code>，30P pin 14/16，引脚 <code>PA_31</code> 未引出到 30P</td><td>不用板上传感器时可考虑复用；I2C 地址和 Zephyr compatible 需要由芯片手册或扫描结果补齐。</td></tr>
             <tr><td>传感器电源控制</td><td><code>PA_30</code></td><td>30P pin 18，电源开关控制网络</td><td>复用会影响 <code>PA_39</code>/<code>PA_40</code> 对应传感器供电；当前 DTS 误配为触摸 I2C SCL。</td></tr>
-            <tr><td>RGB LED</td><td><code>PA_32</code></td><td>板载 WS2812B-2020 类 RGB LED，30P pin 17</td><td>不用 RGB LED 时可作 GPIO；驱动方式不同于普通 gpio-leds。</td></tr>
+            <tr><td>RGB LED</td><td><code>PA_32</code></td><td>板载 <code>SK6812MINI-HS</code> RGB LED，30P pin 17</td><td>不用 RGB LED 时可作 GPIO；驱动方式不同于普通 gpio-leds。</td></tr>
             <tr><td>马达 PWM</td><td><code>PA_20</code></td><td>振动马达控制，30P pin 24</td><td>不焊/不用马达时可作 GPIO 或 PWM。</td></tr>
             <tr><td>音频</td><td><code>MIC_BIAS</code>，<code>MIC_ADC_IN</code>，<code>AU_DAC1P_OUT</code>，<code>AU_DAC1N_OUT</code>，<code>PA_42</code> Audio_PA_EN</td><td>板载 MEMS MIC、DAC 输出、功放</td><td><code>PA_42</code> 是功放使能候选脚；当前 DTS 把 PA power 放在 <code>PA_10</code>，需修正。</td></tr>
-            <tr><td>电源路径/检测</td><td><code>PA_44</code> VBUS_DET，<code>PA_38</code> VSYS 切换，<code>PA_26</code> VCC33 切换，<code>VDD33_VOUT2</code>，<code>VBAT/VBATS</code></td><td>板内电源管理网络</td><td>不建议随意复用；这些脚更像电源状态/开关控制而不是富余 GPIO。</td></tr>
+            <tr><td>电源路径/检测</td><td><code>PA_44</code> VBUS_DET，<code>PA_38</code> VSYS 切换，<code>PA_26</code> VCC33 切换，<code>VDD33_VOUT2</code>，<code>VBAT/VBATS</code></td><td><code>SY5320</code>、<code>LP5240HVF</code>、<code>ETA5055V330DS2F</code> 等板内电源管理网络</td><td>不建议随意复用；这些脚更像电源状态/开关控制而不是富余 GPIO。</td></tr>
             <tr><td>模组内部 NOR Flash</td><td><code>PA_12</code> CS，<code>PA_13</code> D1，<code>PA_14</code> D2，<code>PA_15</code> D0，<code>PA_16</code> CLK，<code>PA_17</code> D3</td><td>SF32LB52-MOD-1-N16R8 模组内部</td><td>N16R8 默认连接内部 NOR Flash，开发板不能当普通外部 GPIO 使用。</td></tr>
             <tr><td>32.768 kHz 晶振</td><td><code>PA_22</code> XI，<code>PA_23</code> XO</td><td>模组低速晶振</td><td>当前 pinctrl 配为 LXT32；不建议复用。</td></tr>
           </tbody>
@@ -612,7 +621,7 @@
             <tr><td>14</td><td><code>PA_39_I2C3_SDA</code></td><td>Default I2C SDA</td><td><span class="tag">未启用</span></td><td>占用：板上传感器 I2C SDA；官网表写 <code>PB_39</code>，本地网表为 <code>PA_39</code>。</td></tr>
             <tr><td>15</td><td><code>PA_35_USB_DP</code></td><td>Default USB_DP</td><td><span class="tag">未启用</span></td><td>占用：USB 2.0 FS DP；本地网表为 <code>CN3.15</code>。</td></tr>
             <tr><td>16</td><td><code>PA_40_I2C3_SCL</code></td><td>Default I2C SCL</td><td><span class="tag">未启用</span></td><td>占用：板上传感器 I2C SCL；与 14 脚组成传感器 I2C。</td></tr>
-            <tr><td>17</td><td><code>PA_32</code></td><td>Default RGB LED data，可作 GPIO</td><td><span class="tag warn">DTS 未配</span></td><td>占用：板载 WS2812B-2020 类 RGB LED 数据；网表中通过 0 ohm 连接。</td></tr>
+            <tr><td>17</td><td><code>PA_32</code></td><td>Default RGB LED data，可作 GPIO</td><td><span class="tag warn">DTS 未配</span></td><td>占用：板载 <code>SK6812MINI-HS</code> RGB LED 数据；网表中通过 0 ohm 连接。</td></tr>
             <tr><td>18</td><td><code>PA_30</code></td><td>Default Sensor power control</td><td><span class="tag warn">DTS 作 I2C1 SCL</span></td><td>占用：板上传感器电源控制；作 GPIO 时会影响 <code>PA_39</code> / <code>PA_40</code> 传感器 I2C。</td></tr>
             <tr><td>19</td><td><code>PA_29_SPI1_CS</code></td><td>Default SPI1_CS，可作 GPIO</td><td><span class="tag ok">SPI1 CS</span></td><td>占用：板载 TF 卡 SPI1 CS；扩展 SPI 时核心板 TF 卡不能插入。</td></tr>
             <tr><td>20</td><td><code>PA_24_SPI1_DO</code></td><td>Default SPI1_DO，可作 GPIO</td><td><span class="tag ok">SPI1 DIO/DO</span></td><td>占用：板载 TF 卡 SPI1 DO，同时引到 30P 扩展。</td></tr>
@@ -845,7 +854,7 @@
               <td>LED0</td>
               <td><code>PA26</code> active low</td>
               <td>板载 RGB LED 数据网表为 <code>PA_32</code></td>
-              <td>若要支持 WS2812 类 RGB LED，需单独建 LED strip / PWM bitbang / SPI 类驱动节点。</td>
+              <td>若要支持 SK6812 类 RGB LED，需单独建 LED strip / PWM bitbang / SPI 类驱动节点。</td>
             </tr>
             <tr>
               <td>Audio PA power</td>
@@ -882,13 +891,23 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td><a href="./SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf">SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf</a></td><td>核心板原理图</td><td>PDF 信息显示 9 页。</td></tr>
-            <tr><td><a href="./SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf">SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf</a></td><td>LCD 屏幕板原理图</td><td>PDF 信息显示 1 页。</td></tr>
+            <tr><td><a href="./PDF_立创·黄山派SF32LB52开发板/SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf">PDF_立创·黄山派SF32LB52开发板/SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf</a></td><td>核心板原理图</td><td>PDF 信息显示 9 页；已从原 zip 解压到目录中。</td></tr>
+            <tr><td><a href="./PDF_立创·黄山派SF32LB52开发板/SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf">PDF_立创·黄山派SF32LB52开发板/SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf</a></td><td>LCD 屏幕板原理图</td><td>PDF 信息显示 1 页；已从原 zip 解压到目录中。</td></tr>
             <tr><td><a href="./Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel">Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel</a></td><td>核心板网表</td><td>用于核对 <code>CN3</code>、<code>FPC1</code>、<code>U1</code> 的具体连线。</td></tr>
             <tr><td><a href="./Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel">Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel</a></td><td>LCD 屏幕板网表</td><td>用于核对屏幕板 40P/24P/22P 转接关系。</td></tr>
-            <tr><td><a href="./BOM_立创·黄山派SF32LB52开发板.xlsx">BOM_立创·黄山派SF32LB52开发板.xlsx</a></td><td>BOM</td><td>后续可补充器件型号和 I2C 地址。</td></tr>
-            <tr><td><a href="./ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2">ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2</a></td><td>嘉立创 EDA 工程</td><td>原始工程归档。</td></tr>
-            <tr><td><a href="./PDF_立创·黄山派SF32LB52开发板_copy_2026-06-24.zip">PDF_立创·黄山派SF32LB52开发板_copy_2026-06-24.zip</a></td><td>PDF 原始压缩包</td><td>来自开源工程下载。</td></tr>
+            <tr><td><a href="./BOM_立创·黄山派SF32LB52开发板.xlsx">BOM_立创·黄山派SF32LB52开发板.xlsx</a></td><td>整板 BOM</td><td>用于核对器件型号、封装和物料信息。</td></tr>
+            <tr><td><a href="./DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf">DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf</a></td><td>SF32LB52x 芯片规格书</td><td>PDF 信息显示 60 页。</td></tr>
+            <tr><td><a href="./UM5201-SF32LB52x-用户手册 V0p8p8.pdf">UM5201-SF32LB52x-用户手册 V0p8p8.pdf</a></td><td>SF32LB52x 用户手册</td><td>PDF 信息显示 371 页。</td></tr>
+            <tr><td><a href="./PB5201-SF32LB52x-产品简介.pdf">PB5201-SF32LB52x-产品简介.pdf</a></td><td>SF32LB52x 产品简介</td><td>PDF 信息显示 2 页。</td></tr>
+            <tr><td><a href="./DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf">DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf</a></td><td>SF32LB52-MOD-1 模组规格书</td><td>PDF 信息显示 45 页；用于核对 68P 模组管脚和内部 Flash 连接。</td></tr>
+            <tr><td><a href="./ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2">ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2</a></td><td>嘉立创 EDA 工程归档</td><td>早前下载的工程文件。</td></tr>
+            <tr><td><a href="./ProPrj_立创·黄山派SF32LB52开发板V1.2(202504250924).epro">ProPrj_立创·黄山派SF32LB52开发板V1.2(202504250924).epro</a></td><td>嘉立创 EDA 工程</td><td>更新后的 V1.2 工程文件。</td></tr>
+            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf</a></td><td>模组原理图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf</a></td><td>模组 PCB 图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PLACEMENT_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PLACEMENT_V1.0.0.pdf</a></td><td>模组贴片坐标图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1-BOM-V1.0.0.xlsx">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1-BOM-V1.0.0.xlsx</a></td><td>模组 BOM</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SMTCAD_V1.0.0.xls">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SMTCAD_V1.0.0.xls</a></td><td>模组 SMT 坐标/制造资料</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32-LB52X-MOD-1_V1.0.0_制版说明.docx">SF32LB52-MOD-1-V1.0.0/SF32-LB52X-MOD-1_V1.0.0_制版说明.docx</a></td><td>模组制版说明</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
           </tbody>
         </table>
       </div>
@@ -897,13 +916,14 @@
     <section>
       <h2>后续待补充</h2>
       <div class="callout warn">
-        <p>这份 HTML 先记录了能从公开页、网表和当前 DTS 直接确认的引脚与资源。下面这些信息建议后续从 BOM、芯片丝印或实际 I2C 扫描结果继续补齐。</p>
+        <p>这份 HTML 先记录了能从官方页、公开页、网表和当前 DTS 直接确认的引脚与资源。下面这些信息建议后续从 BOM、芯片手册、实物丝印或实际 I2C 扫描结果继续补齐。</p>
         <ul>
-          <li>九轴/传感器具体型号、I2C 地址、中断脚 <code>PA_31</code> 的实际用途。</li>
-          <li>充电 IC 的 I2C 地址和 Zephyr driver 适配方式。</li>
-          <li>RGB LED 的具体型号和可用驱动策略。</li>
+          <li>确认本地 BOM/实物与 SiFli 官方页列出的 <code>LSM6DS3TR-C</code>、<code>MMC5603NJ</code>、<code>LTR-303ALS-01</code>、<code>SY6103</code>、<code>SK6812MINI-HS</code> 是否完全一致。</li>
+          <li>补充各 I2C 外设地址、中断极性和 Zephyr compatible。</li>
+          <li>确认 <code>PA_31</code> 传感器中断脚、<code>PA_30</code> 传感器电源控制脚的驱动时序。</li>
+          <li>RGB LED 的可用驱动策略。</li>
           <li>屏幕供电/背光使能的真实 GPIO 或固定电源关系。</li>
-          <li>触摸芯片型号、I2C 地址、Reset/INT 极性。</li>
+          <li><code>FT6146-M00</code> 触摸 I2C 地址、Reset/INT 极性。</li>
         </ul>
       </div>
     </section>
