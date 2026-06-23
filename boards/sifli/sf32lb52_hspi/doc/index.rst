@@ -10,7 +10,7 @@ Board-specific pin mappings should be checked against the Huangshan Pi hardware
 schematic before enabling production peripherals.
 
 More information about the board can be found at the
-`HSPI-SF32LB52 website`_.
+`HSPI-SF32LB52 website`_ and the `SiFli official board guide`_.
 
 Hardware
 ********
@@ -28,10 +28,12 @@ HSPI-SF32LB52 provides the following hardware components:
 
 - Dedicated screen interface
 
+  - 1.85 inch 390 x 450 AMOLED display, ZC-A1D85W-010, with CO5300AF-01 display
+    IC and BV6802W display power IC.
   - SPI/DSPI/QSPI, supports DDR mode QSPI, led out through 22-pin FPC and 40-pin
-    header
+    header.
   - 8-bit MCU/8080, led out through 22pin FPC and 40pin header.
-  - Supports touch screens with I2C interface.
+  - FT6146-M00 touch controller with I2C interface.
 
 - Audio
 
@@ -40,13 +42,20 @@ HSPI-SF32LB52 provides the following hardware components:
 
 - USB
 
-  - Type C interface, connected to USB to serial chip, enabling program
+  - Type C interface, connected to CH340N USB to serial chip, enabling program
     download and software debug, can also supply power.
   - Type C interface, supports USB-2.0 FS, can also supply power.
 
 - SD card
 
   - Supports TF cards using SPI interface, onboard Micro SD card slot.
+
+- Board peripherals
+
+  - SK6812MINI-HS RGB LED.
+  - LSM6DS3TR-C six-axis sensor, MMC5603NJ geomagnetic sensor, and
+    LTR-303ALS-01 ambient light sensor.
+  - SY6103 linear charger and related power path components.
 
 Hardware Reference Artifacts
 ============================
@@ -55,13 +64,19 @@ The local board documentation directory includes downloaded open hardware
 artifacts and a consolidated pin/resource reference page:
 
 - :download:`Pin and board resource reference <pin-resources.html>`
-- :download:`Core board schematic PDF <SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf>`
-- :download:`LCD board schematic PDF <SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf>`
+- :download:`Core board schematic PDF <PDF_立创·黄山派SF32LB52开发板/SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf>`
+- :download:`LCD board schematic PDF <PDF_立创·黄山派SF32LB52开发板/SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf>`
 - :download:`Core board netlist <Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel>`
 - :download:`LCD board netlist <Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel>`
 - :download:`BOM spreadsheet <BOM_立创·黄山派SF32LB52开发板.xlsx>`
+- :download:`SF32LB52x chip datasheet <DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf>`
+- :download:`SF32LB52x user manual <UM5201-SF32LB52x-用户手册 V0p8p8.pdf>`
+- :download:`SF32LB52x product brief <PB5201-SF32LB52x-产品简介.pdf>`
+- :download:`SF32LB52-MOD-1 module datasheet <DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf>`
 - :download:`Original EasyEDA Pro project archive <ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2>`
-- :download:`Downloaded schematic PDF archive <PDF_立创·黄山派SF32LB52开发板_copy_2026-06-24.zip>`
+- :download:`Updated EasyEDA Pro project <ProPrj_立创·黄山派SF32LB52开发板V1.2(202504250924).epro>`
+- :download:`Module schematic PDF <SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf>`
+- :download:`Module PCB PDF <SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf>`
 
 Supported Features
 ==================
@@ -82,6 +97,9 @@ References
 
 .. _HSPI-SF32LB52 website:
    https://wiki.lckfb.com/zh-hans/hspi-sf32lb52/hardware/board.html
+
+.. _SiFli official board guide:
+   https://wiki.sifli.com/board/sf32lb52x/SF32LB52-%E9%BB%84%E5%B1%B1%E6%B4%BE.html
 
 .. _sftool website:
    https://github.com/OpenSiFli/sftool
