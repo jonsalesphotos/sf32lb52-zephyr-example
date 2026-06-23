@@ -48,6 +48,21 @@ HSPI-SF32LB52 provides the following hardware components:
 
   - Supports TF cards using SPI interface, onboard Micro SD card slot.
 
+Hardware Reference Artifacts
+============================
+
+The local board documentation directory includes downloaded open hardware
+artifacts and a consolidated pin/resource reference page:
+
+- :download:`Pin and board resource reference <pin-resources.html>`
+- :download:`Core board schematic PDF <SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf>`
+- :download:`LCD board schematic PDF <SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf>`
+- :download:`Core board netlist <Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel>`
+- :download:`LCD board netlist <Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel>`
+- :download:`BOM spreadsheet <BOM_立创·黄山派SF32LB52开发板.xlsx>`
+- :download:`Original EasyEDA Pro project archive <ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2>`
+- :download:`Downloaded schematic PDF archive <PDF_立创·黄山派SF32LB52开发板_copy_2026-06-24.zip>`
+
 Supported Features
 ==================
 
