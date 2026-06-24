@@ -12,6 +12,7 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/i2c/i2c.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/led/led.h>
 
 #include "sf32lb52_hspi-pinctrl.dtsi"
 
@@ -48,7 +49,10 @@
 
 		key2: key2 {
 			label = "KEY2";
-			gpios = <&gpioa_00_31 11 GPIO_ACTIVE_HIGH>;
+			/* SW2 / function key = PA_43 (netlist PA_43_KEY2 -> SW2;
+			 * SDK CONFIG_BSP_KEY2_PIN=43). PA_11 is the charger I2C2 SDA.
+			 */
+			gpios = <&gpioa_32_44 11 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_2>;
 		};
 	};
@@ -58,7 +62,11 @@
 
 		led0: led0 {
 			label = "LED0";
-			gpios = <&gpioa_00_31 26 GPIO_ACTIVE_LOW>;
+			/* PA_26, active high (SDK CONFIG_BSP_LED1_ACTIVE_HIGH=y).
+			 * PA_26 also enables the VSYS->VCC_3V3 rail, so driving this
+			 * LED high additionally powers VCC_3V3 (see the power-rail note).
+			 */
+			gpios = <&gpioa_00_31 26 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
@@ -79,15 +87,42 @@
 	};
 
 	/*
-	 * On-board sensor power rail (GS_3V3), gated by load switch U15
-	 * (ETA5055V330DS2F) whose enable is driven by PA_30 (active high).
-	 * Requires CONFIG_REGULATOR to actually be switched on at boot.
+	 * On-board power-rail enables (all active-high, default-off at reset).
+	 * SDK bsp_power.c brings them up in order: VSYS (PA_38) -> VCC_3V3 (PA_26)
+	 * -> GS_3V3 sensor rail (PA_30), then a ~500us settle delay before the
+	 * sensor / charger I2C is usable. Modeled as regulator-fixed
+	 * (regulator-boot-on needs CONFIG_REGULATOR to switch on at boot).
+	 * NOTE: VCC_3V3 (PA_26) is shared with LED0, so it is not modeled as a
+	 * separate regulator here; drive LED0 / PA_26 high to enable that rail.
 	 */
+	vsys_en: regulator-vsys {
+		compatible = "regulator-fixed";
+		regulator-name = "vsys-en";
+		enable-gpios = <&gpioa_32_44 6 GPIO_ACTIVE_HIGH>;
+		regulator-boot-on;
+	};
+
 	gs_3v3: regulator-gs3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "gs-3v3";
 		enable-gpios = <&gpioa_00_31 30 GPIO_ACTIVE_HIGH>;
 		regulator-boot-on;
+	};
+
+	/*
+	 * On-board WS2812B RGB LED (LED3) on PA_32. Bit-bang GPIO driver;
+	 * the reset-delay/timing here are placeholders to be tuned on bring-up.
+	 * Disabled until brought up.
+	 */
+	led_strip: led-strip {
+		compatible = "worldsemi,ws2812-gpio";
+		in-gpios = <&gpioa_32_44 0 GPIO_ACTIVE_HIGH>;
+		chain-length = <1>;
+		color-mapping = <LED_COLOR_ID_GREEN
+				 LED_COLOR_ID_RED
+				 LED_COLOR_ID_BLUE>;
+		reset-delay = <280>;
+		status = "disabled";
 	};
 };
 
@@ -201,7 +236,10 @@
 	dmas = <&dmac 1 SF32LB52X_DMA_REQ_AUDAC_CH0 SF32LB_DMA_PL_HIGH>,
 	       <&dmac 4 SF32LB52X_DMA_REQ_AUDADC_CH0 SF32LB_DMA_PL_HIGH>;
 	dma-names = "tx", "rx";
-	pa-power-gpios = <&gpioa_00_31 10 GPIO_ACTIVE_HIGH>;
+	/* Class-D PA enable = PA_42 (netlist PA_42 -> U6; SDK
+	 * CONFIG_AW8155_GPIO_PIN=42, active high). PA_10 is the charger I2C2 SCL.
+	 */
+	pa-power-gpios = <&gpioa_32_44 10 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
@@ -218,6 +256,17 @@
 	pinctrl-0 = <&i2c1_default>;
 	pinctrl-names = "default";
 	clock-frequency = <I2C_BITRATE_FAST>;
+
+	ft6146: ft6146@38 {
+		/* Capacitive touch panel (FT6146) on the LCD FPC. INT PA_41,
+		 * RST PA_09 per the screen netlist. Disabled until brought up.
+		 */
+		compatible = "focaltech,ft6146";
+		reg = <0x38>;
+		int-gpios = <&gpioa_32_44 9 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpioa_00_31 9 GPIO_ACTIVE_LOW>;
+		status = "disabled";
+	};
 };
 
 &i2c3 {
@@ -232,16 +281,19 @@
 	lsm6dsl: lsm6dsl@6a {
 		/* LSM6DS3TR-C (U13) is register-compatible with LSM6DSL
 		 * (WHO_AM_I 0x6A). SA0 is tied low -> I2C address 0x6A.
+		 * Disabled until brought up (enable with the lsm6dsl driver).
 		 */
 		compatible = "st,lsm6dsl";
 		reg = <0x6a>;
 		irq-gpios = <&gpioa_00_31 31 GPIO_ACTIVE_HIGH>;
+		status = "disabled";
 	};
 
 	mmc56x3: mmc56x3@30 {
-		/* MMC5603NJ (U14), fixed I2C address 0x30. */
+		/* MMC5603NJ (U14), fixed I2C address 0x30. Disabled until brought up. */
 		compatible = "memsic,mmc56x3";
 		reg = <0x30>;
+		status = "disabled";
 	};
 
 	ltr303: ltr303@29 {
@@ -251,6 +303,28 @@
 		 */
 		compatible = "liteon,ltr329";
 		reg = <0x29>;
+		status = "disabled";
+	};
+};
+
+&i2c2 {
+	/* Charger control bus (net I2C2): SCL PA_10, SDA PA_11. With the audio PA
+	 * moved to PA_42 and KEY2 to PA_43, these pins are now free, so the bus is
+	 * enabled; the charger child stays disabled until its driver is brought up.
+	 */
+	status = "okay";
+	pinctrl-0 = <&i2c2_default>;
+	pinctrl-names = "default";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	charger: charger@49 {
+		/* AW32001 (U3) linear charger, address 0x49 (netlist + SDK confirmed).
+		 * Placeholder compatible - no upstream Zephyr driver yet.
+		 * VBUS / charger interrupt = PA_44 (active high on this board).
+		 */
+		compatible = "awinic,aw32001";
+		reg = <0x49>;
+		int-gpios = <&gpioa_32_44 12 GPIO_ACTIVE_HIGH>;
 		status = "disabled";
 	};
 };

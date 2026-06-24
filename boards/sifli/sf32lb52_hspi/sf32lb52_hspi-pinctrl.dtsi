@@ -27,6 +27,16 @@
 		};
 	};
 
+	/* Charger I2C (net I2C2): SDA PA_11, SCL PA_10.
+	 * NOTE: PA_10 is also wired to the audio PA enable; resolve before use.
+	 */
+	i2c2_default: i2c2_default {
+		group1 {
+			pinmux = <PA11_I2C2_SDA>, <PA10_I2C2_SCL>;
+			input-enable;
+		};
+	};
+
 	/* On-board sensor I2C (net I2C3): SDA PA_39, SCL PA_40. */
 	i2c3_default: i2c3_default {
 		group1 {
@@ -46,7 +56,7 @@
 			pinmux = <PA25_SPI1_DI>;
 			input-enable;
 			input-schmitt-enable;
-			bias-pull-down;
+			bias-pull-up;
 		};
 	};
 
