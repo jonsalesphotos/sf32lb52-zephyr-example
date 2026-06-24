@@ -19,9 +19,18 @@
 		};
 	};
 
+	/* Touch-panel I2C (FT6146): SDA PA_33, SCL PA_37 per Huangshan Pi netlist. */
 	i2c1_default: i2c1_default {
 		group1 {
-			pinmux = <PA33_I2C1_SDA>, <PA30_I2C1_SCL>;
+			pinmux = <PA33_I2C1_SDA>, <PA37_I2C1_SCL>;
+			input-enable;
+		};
+	};
+
+	/* On-board sensor I2C (net I2C3): SDA PA_39, SCL PA_40. */
+	i2c3_default: i2c3_default {
+		group1 {
+			pinmux = <PA39_I2C3_SDA>, <PA40_I2C3_SCL>;
 			input-enable;
 		};
 	};
