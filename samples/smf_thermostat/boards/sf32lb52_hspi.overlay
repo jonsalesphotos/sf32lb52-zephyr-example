@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Board overlay for the SMF thermostat sample on the HSPI-SF32LB52
+ * (Huangshan Pi). The board device tree already routes the Zephyr console to
+ * usart1; this overlay pins it explicitly so the demo's printk() output is
+ * visible on the serial port.
+ */
+
+/ {
+	chosen {
+		zephyr,console = &usart1;
+	};
+};
+
+&usart1 {
+	status = "okay";
+	current-speed = <1000000>;
+	pinctrl-0 = <&usart1_default>;
+	pinctrl-names = "default";
+};
