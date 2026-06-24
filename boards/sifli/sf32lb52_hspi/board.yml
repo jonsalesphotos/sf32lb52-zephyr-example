@@ -3,7 +3,7 @@
 
 board:
   name: sf32lb52_hspi
-  full_name: HSPI-SF32LB52 (Huangshan Pi)
+  full_name: SF32LB52-HSPI (Huangshan Pi)
   vendor: sifli
   socs:
     - name: sf32lb525uc6

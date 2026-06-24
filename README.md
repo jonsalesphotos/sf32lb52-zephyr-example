@@ -20,7 +20,7 @@ second.
 ## Target Board
 
 - Board: `sf32lb52_hspi`
-- Full name: HSPI-SF32LB52 (Huangshan Pi)
+- Full name: SF32LB52-HSPI (Huangshan Pi)
 - SoC: `sf32lb525uc6`
 - Vendor: SiFli
 

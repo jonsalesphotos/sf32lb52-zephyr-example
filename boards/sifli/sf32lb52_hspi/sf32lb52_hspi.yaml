@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 identifier: sf32lb52_hspi
-name: HSPI-SF32LB52
+name: SF32LB52-HSPI
 type: mcu
 arch: arm
 ram: 512

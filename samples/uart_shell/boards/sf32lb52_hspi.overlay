@@ -5,7 +5,7 @@
  */
 
 /*
- * Board overlay for the UART shell sample on the HSPI-SF32LB52 (Huangshan Pi).
+ * Board overlay for the UART shell sample on the SF32LB52-HSPI (Huangshan Pi).
  *
  * The board device tree already routes the Zephyr console and shell to
  * usart1, so this overlay only pins the shell UART explicitly for the sample
