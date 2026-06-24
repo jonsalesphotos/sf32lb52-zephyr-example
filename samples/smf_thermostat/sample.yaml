@@ -1,0 +1,9 @@
+sample:
+  name: SMF Hierarchical Thermostat
+  description: Hierarchical state machine demo using the Zephyr State Machine Framework
+tests:
+  sample.smf.thermostat:
+    tags: smf
+    integration_platforms:
+      - sf32lb52_hspi
+    build_only: true

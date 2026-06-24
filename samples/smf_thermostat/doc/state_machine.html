@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMF 恒温器 —— 状态机转换图</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --card:#ffffff; --ink:#1f2933; --muted:#5b6b7b;
+    --line:#d8e0ea; --accent:#2563eb; --accent-soft:#e8f0ff;
+    --active:#eaf2ff; --active-bd:#5b8def;
+    --op:#dbe9ff; --op-bd:#2563eb;
+    --fault:#ffe4e2; --fault-bd:#e0483b;
+    --cross:#e8730c; --gray:#7b8794;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:32px 20px 64px;
+    background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",
+      "PingFang SC","Microsoft YaHei",Arial,sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:1040px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px}
+  h2{font-size:19px;margin:34px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--line)}
+  .sub{color:var(--muted);margin:0 0 24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:18px 20px;margin:18px 0;box-shadow:0 1px 3px rgba(20,40,80,.05)}
+  .diagram{overflow-x:auto}
+  svg{display:block;margin:0 auto;min-width:760px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px 26px;margin-top:6px;font-size:14px}
+  .legend span{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+  .sw{width:26px;height:14px;border-radius:4px;border:2px solid}
+  .dot{width:14px;height:14px;border-radius:50%}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin-top:6px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--accent-soft);color:#16325c;font-weight:600}
+  td code,p code,li code{background:#eef2f7;border-radius:4px;padding:1px 6px;
+    font-family:"Cascadia Code",Consolas,"SFMono-Regular",monospace;font-size:13px}
+  tr:nth-child(even) td{background:#fbfcfe}
+  .pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;
+    padding:2px 10px;color:#fff}
+  .pill.evt{background:var(--accent)}
+  .pill.cross{background:var(--cross)}
+  ul{margin:6px 0 6px 2px;padding-left:20px}
+  li{margin:5px 0}
+  details{margin-top:10px}
+  summary{cursor:pointer;font-weight:600;color:var(--accent)}
+  pre{background:#0f1830;color:#dce6fb;border-radius:10px;padding:14px 16px;
+    overflow-x:auto;font-size:13px;line-height:1.5}
+  .foot{color:var(--muted);font-size:13px;margin-top:30px;text-align:center}
+  .tag{font-family:"Cascadia Code",Consolas,monospace;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Zephyr SMF —— 分层恒温器状态机</h1>
+  <p class="sub">示例 <span class="tag">application/samples/smf_thermostat</span> 的状态转换图与逐步讲解,
+    基于 Zephyr 状态机框架(SMF v0.2.0 接口)。</p>
+
+  <!-- ============================ 转换图 ============================ -->
+  <h2>1 &middot; 状态转换图</h2>
+  <div class="card diagram">
+    <svg viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="分层状态机转换图">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#5b6b7b"/>
+        </marker>
+        <marker id="arrowX" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8730c"/>
+        </marker>
+        <marker id="arrowK" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#1f2933"/>
+        </marker>
+      </defs>
+
+      <!-- ACTIVE 超级态容器 -->
+      <rect x="50" y="120" width="600" height="470" rx="18"
+            fill="#eaf2ff" stroke="#5b8def" stroke-width="2"/>
+      <text x="70" y="150" font-size="17" font-weight="700" fill="#234e9e">
+        ACTIVE（超级态）</text>
+      <text x="70" y="170" font-size="12.5" fill="#5b6b7b">
+        父 run 为所有子态统一处理 EVENT_FAULT / EVENT_SHUTDOWN</text>
+
+      <!-- 状态机起点 -->
+      <circle cx="80" cy="92" r="9" fill="#1f2933"/>
+      <path d="M88,98 L122,120" stroke="#1f2933" stroke-width="2" fill="none"
+            marker-end="url(#arrowK)"/>
+
+      <!-- ACTIVE 初始转换 -> IDLE -->
+      <circle cx="112" cy="220" r="7" fill="#1f2933"/>
+      <path d="M118,225 Q140,242 158,250" stroke="#1f2933" stroke-width="2"
+            fill="none" marker-end="url(#arrowK)"/>
+      <text x="92" y="212" font-size="11.5" fill="#5b6b7b">初始</text>
+
+      <!-- IDLE -->
+      <rect x="90" y="250" width="160" height="86" rx="12"
+            fill="#dbe9ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="170" y="285" text-anchor="middle" font-size="16" font-weight="700"
+            fill="#16325c">IDLE</text>
+      <text x="170" y="306" text-anchor="middle" font-size="11.5" fill="#3a567f">
+        加热/制冷 关</text>
+
+      <!-- HEATING -->
+      <rect x="440" y="180" width="170" height="86" rx="12"
+            fill="#dbe9ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="525" y="215" text-anchor="middle" font-size="16" font-weight="700"
+            fill="#16325c">HEATING</text>
+      <text x="525" y="236" text-anchor="middle" font-size="11.5" fill="#3a567f">
+        加热 开</text>
+
+      <!-- COOLING -->
+      <rect x="440" y="430" width="170" height="86" rx="12"
+            fill="#dbe9ff" stroke="#2563eb" stroke-width="2"/>
+      <text x="525" y="465" text-anchor="middle" font-size="16" font-weight="700"
+            fill="#16325c">COOLING</text>
+      <text x="525" y="486" text-anchor="middle" font-size="11.5" fill="#3a567f">
+        制冷 开</text>
+
+      <!-- FAULT（在 ACTIVE 之外) -->
+      <rect x="760" y="320" width="190" height="120" rx="14"
+            fill="#ffe4e2" stroke="#e0483b" stroke-width="2"/>
+      <text x="855" y="362" text-anchor="middle" font-size="16" font-weight="700"
+            fill="#9a2820">FAULT</text>
+      <text x="855" y="383" text-anchor="middle" font-size="11.5" fill="#9a2820">
+        输出置安全</text>
+      <text x="855" y="401" text-anchor="middle" font-size="11.5" fill="#9a2820">
+        顶层叶子态</text>
+
+      <!-- 终止 / final -->
+      <circle cx="855" cy="600" r="14" fill="none" stroke="#1f2933" stroke-width="2"/>
+      <circle cx="855" cy="600" r="7" fill="#1f2933"/>
+
+      <!-- ===== 兄弟态跳转(灰) ===== -->
+      <!-- IDLE -> HEATING : TEMP_LOW -->
+      <path d="M250,276 C330,262 380,236 436,229" stroke="#7b8794" stroke-width="1.8"
+            fill="none" marker-end="url(#arrow)"/>
+      <g><rect x="300" y="232" width="86" height="20" rx="6" fill="#fff" stroke="#d8e0ea"/>
+         <text x="343" y="246" text-anchor="middle" font-size="12" fill="#3b4a5a">TEMP_LOW</text></g>
+
+      <!-- HEATING -> IDLE : TEMP_OK -->
+      <path d="M438,252 C380,288 330,300 252,300" stroke="#7b8794" stroke-width="1.8"
+            fill="none" marker-end="url(#arrow)"/>
+      <g><rect x="312" y="292" width="74" height="20" rx="6" fill="#fff" stroke="#d8e0ea"/>
+         <text x="349" y="306" text-anchor="middle" font-size="12" fill="#3b4a5a">TEMP_OK</text></g>
+
+      <!-- IDLE -> COOLING : TEMP_HIGH -->
+      <path d="M244,330 C320,372 372,420 436,452" stroke="#7b8794" stroke-width="1.8"
+            fill="none" marker-end="url(#arrow)"/>
+      <g><rect x="276" y="384" width="90" height="20" rx="6" fill="#fff" stroke="#d8e0ea"/>
+         <text x="321" y="398" text-anchor="middle" font-size="12" fill="#3b4a5a">TEMP_HIGH</text></g>
+
+      <!-- COOLING -> IDLE : TEMP_OK -->
+      <path d="M438,476 C350,506 286,430 226,332" stroke="#7b8794" stroke-width="1.8"
+            fill="none" marker-end="url(#arrow)"/>
+      <g><rect x="330" y="492" width="74" height="20" rx="6" fill="#fff" stroke="#d8e0ea"/>
+         <text x="367" y="506" text-anchor="middle" font-size="12" fill="#3b4a5a">TEMP_OK</text></g>
+
+      <!-- HEATING -> COOLING : TEMP_HIGH -->
+      <path d="M548,266 L548,430" stroke="#7b8794" stroke-width="1.8"
+            fill="none" marker-end="url(#arrow)"/>
+      <g><rect x="556" y="338" width="90" height="20" rx="6" fill="#fff" stroke="#d8e0ea"/>
+         <text x="601" y="352" text-anchor="middle" font-size="12" fill="#3b4a5a">TEMP_HIGH</text></g>
+
+      <!-- COOLING -> HEATING : TEMP_LOW -->
+      <path d="M502,430 L502,266" stroke="#7b8794" stroke-width="1.8"
+            fill="none" marker-end="url(#arrow)"/>
+      <g><rect x="416" y="338" width="86" height="20" rx="6" fill="#fff" stroke="#d8e0ea"/>
+         <text x="459" y="352" text-anchor="middle" font-size="12" fill="#3b4a5a">TEMP_LOW</text></g>
+
+      <!-- ===== 跨层级跳转(橙) ===== -->
+      <!-- ACTIVE -> FAULT : EVENT_FAULT -->
+      <path d="M650,366 L756,374" stroke="#e8730c" stroke-width="2.2"
+            fill="none" marker-end="url(#arrowX)"/>
+      <g><rect x="636" y="316" width="118" height="36" rx="6" fill="#fff7ee" stroke="#f0c79a"/>
+         <text x="695" y="331" text-anchor="middle" font-size="12" font-weight="600" fill="#b65b06">EVENT_FAULT</text>
+         <text x="695" y="346" text-anchor="middle" font-size="10.5" fill="#b65b06">经 ACTIVE.run（任意子态）</text></g>
+
+      <!-- FAULT -> ACTIVE : EVENT_RESET -->
+      <path d="M812,320 C740,250 706,196 650,182" stroke="#e8730c" stroke-width="2.2"
+            fill="none" marker-end="url(#arrowX)"/>
+      <g><rect x="668" y="214" width="150" height="20" rx="6" fill="#fff7ee" stroke="#f0c79a"/>
+         <text x="743" y="228" text-anchor="middle" font-size="11.5" font-weight="600" fill="#b65b06">EVENT_RESET &rarr; IDLE</text></g>
+
+      <!-- ACTIVE -> final : EVENT_SHUTDOWN -->
+      <path d="M650,545 C726,580 770,592 838,599" stroke="#e8730c" stroke-width="2.2"
+            fill="none" marker-end="url(#arrowX)"/>
+      <g><rect x="648" y="556" width="128" height="20" rx="6" fill="#fff7ee" stroke="#f0c79a"/>
+         <text x="712" y="570" text-anchor="middle" font-size="11.5" font-weight="600" fill="#b65b06">EVENT_SHUTDOWN</text></g>
+
+      <!-- FAULT -> final : EVENT_SHUTDOWN -->
+      <path d="M855,440 L855,582" stroke="#e8730c" stroke-width="2.2"
+            fill="none" marker-end="url(#arrowX)"/>
+      <g><rect x="861" y="500" width="128" height="20" rx="6" fill="#fff7ee" stroke="#f0c79a"/>
+         <text x="925" y="514" text-anchor="middle" font-size="11.5" font-weight="600" fill="#b65b06">EVENT_SHUTDOWN</text></g>
+    </svg>
+
+    <div class="legend">
+      <span><i class="sw" style="background:#eaf2ff;border-color:#5b8def"></i>ACTIVE 超级状态(容器)</span>
+      <span><i class="sw" style="background:#dbe9ff;border-color:#2563eb"></i>运行子状态</span>
+      <span><i class="sw" style="background:#ffe4e2;border-color:#e0483b"></i>FAULT(层级外的安全态)</span>
+      <span><i class="dot" style="background:#1f2933"></i>起始 / 初始转换</span>
+      <span><i class="dot" style="background:#fff;border:2px solid #1f2933"></i>终止(terminate)</span>
+      <span><i class="sw" style="background:#fff;border-color:#7b8794"></i>兄弟态跳转</span>
+      <span><i class="sw" style="background:#fff;border-color:#e8730c"></i>跨层级 / 冒泡事件</span>
+    </div>
+  </div>
+
+  <!-- ============================ 转换表 ============================ -->
+  <h2>2 &middot; 状态转换表</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>源状态</th><th>事件</th><th>目标</th><th>谁处理 · 备注</th></tr></thead>
+      <tbody>
+        <tr><td><code>(起点)</code></td><td><span class="pill evt">smf_set_initial</span></td><td>ACTIVE &rarr; IDLE</td><td>进入 ACTIVE 后按 <code>initial</code> 下钻到 IDLE</td></tr>
+        <tr><td>IDLE</td><td><span class="pill evt">TEMP_LOW</span></td><td>HEATING</td><td>叶子 <code>idle_run</code> 直接处理</td></tr>
+        <tr><td>IDLE</td><td><span class="pill evt">TEMP_HIGH</span></td><td>COOLING</td><td>叶子 <code>idle_run</code></td></tr>
+        <tr><td>HEATING</td><td><span class="pill evt">TEMP_OK</span></td><td>IDLE</td><td>兄弟态跳转,不重跑 ACTIVE entry/exit</td></tr>
+        <tr><td>HEATING</td><td><span class="pill evt">TEMP_HIGH</span></td><td>COOLING</td><td>兄弟态跳转</td></tr>
+        <tr><td>COOLING</td><td><span class="pill evt">TEMP_OK</span></td><td>IDLE</td><td>兄弟态跳转</td></tr>
+        <tr><td>COOLING</td><td><span class="pill evt">TEMP_LOW</span></td><td>HEATING</td><td>兄弟态跳转</td></tr>
+        <tr><td>IDLE / HEATING / COOLING</td><td><span class="pill cross">EVENT_FAULT</span></td><td>FAULT</td><td>叶子返回 <code>PROPAGATE</code>,由父 <code>active_run</code> 统一处理 &rarr; 跑 ACTIVE.exit</td></tr>
+        <tr><td>FAULT</td><td><span class="pill cross">EVENT_RESET</span></td><td>ACTIVE &rarr; IDLE</td><td>重跑 ACTIVE.entry 并初始转换到 IDLE</td></tr>
+        <tr><td>任意状态</td><td><span class="pill cross">EVENT_SHUTDOWN</span></td><td><code>(终止)</code></td><td><code>smf_set_terminate(ctx, 1)</code>,非 0 值</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================ 走查 ============================ -->
+  <h2>3 &middot; 演示脚本逐步走查</h2>
+  <p class="sub" style="margin:0 0 10px">下表对应 <code>main.c</code> 中 <code>script[]</code> 注入的事件序列,以及串口上会看到的 entry/run/exit 顺序。</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>#</th><th>事件</th><th>状态变化</th><th>串口可见的动作(按顺序)</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td><i>初始化</i></td><td>&rarr; IDLE</td><td><code>ACTIVE.entry</code> &rarr; <code>IDLE.entry</code></td></tr>
+        <tr><td>1</td><td>TEMP_LOW</td><td>IDLE &rarr; HEATING</td><td><code>HEATING.entry</code>(IDLE 无 exit)</td></tr>
+        <tr><td>2</td><td>TEMP_OK</td><td>HEATING &rarr; IDLE</td><td><code>HEATING.exit</code> &rarr; <code>IDLE.entry</code></td></tr>
+        <tr><td>3</td><td>TEMP_HIGH</td><td>IDLE &rarr; COOLING</td><td><code>COOLING.entry</code></td></tr>
+        <tr><td>4</td><td>TEMP_LOW</td><td>COOLING &rarr; HEATING</td><td><code>COOLING.exit</code> &rarr; <code>HEATING.entry</code><br><b>注意:没有 ACTIVE entry/exit</b>(兄弟态优化)</td></tr>
+        <tr><td>5</td><td>EVENT_FAULT</td><td>HEATING &rarr; FAULT</td><td><code>active_run</code> 拦截 &rarr; <code>HEATING.exit</code> &rarr; <code>ACTIVE.exit</code> &rarr; <code>FAULT.entry</code></td></tr>
+        <tr><td>6</td><td>EVENT_RESET</td><td>FAULT &rarr; IDLE</td><td><code>fault_run</code> &rarr; <code>FAULT.exit</code> &rarr; <code>ACTIVE.entry</code> &rarr; <code>IDLE.entry</code></td></tr>
+        <tr><td>7</td><td>EVENT_SHUTDOWN</td><td>&rarr; 终止</td><td><code>active_run</code> &rarr; <code>smf_set_terminate</code> &rarr; 线程退出</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============================ 机制 ============================ -->
+  <h2>4 &middot; 对应的 SMF 机制</h2>
+  <div class="card">
+    <ul>
+      <li><b>分层 + 初始转换</b> &mdash; <code>ACTIVE</code> 是 <code>IDLE/HEATING/COOLING</code> 的父态,并把 <code>initial</code> 指向 <code>IDLE</code>。
+        需要 <code>CONFIG_SMF_ANCESTOR_SUPPORT=y</code> 与 <code>CONFIG_SMF_INITIAL_TRANSITION=y</code>。</li>
+      <li><b>run 向上冒泡(v0.2.0 新接口)</b> &mdash; 叶子 <code>run</code> 对自己不处理的事件返回
+        <code>SMF_EVENT_PROPAGATE</code>,框架接着调用父 <code>active_run</code>;处理掉则返回
+        <code>SMF_EVENT_HANDLED</code>(或调用 <code>smf_set_state()</code>)以停止冒泡。
+        旧版的 <code>smf_set_handled()</code> 在本版本已由返回值取代。</li>
+      <li><b>LCA / 兄弟态优化</b> &mdash; <code>IDLE&harr;HEATING&harr;COOLING</code> 的最近公共祖先是
+        <code>ACTIVE</code>,所以这些跳转<strong>不会</strong>重跑 <code>ACTIVE</code> 的 entry/exit;
+        而进/出 <code>FAULT</code>(父=NULL)会经过 <code>ACTIVE</code> 的 exit/entry。</li>
+      <li><b>终止</b> &mdash; <code>smf_set_terminate(ctx, val)</code> 的 <code>val</code> 必须<strong>非 0</strong>,
+        因为 <code>smf_run_state()</code> 会把它作为返回值,主循环以“非 0 即停止”判断。传 0 会导致空转。</li>
+      <li><b>事件驱动</b> &mdash; <code>main()</code> 把脚本事件 <code>k_event_post</code> 给状态机线程,
+        线程 <code>k_event_wait</code> 取事件后调用 <code>smf_run_state()</code>。这是真实工程里
+        中断 / 其他线程投递事件、状态机线程消费的标准结构(需 <code>CONFIG_EVENTS=y</code>)。</li>
+    </ul>
+
+    <details>
+      <summary>Mermaid 源码(可粘到支持 Mermaid 的编辑器 / GitHub 里渲染)</summary>
+<pre>
+stateDiagram-v2
+    [*] --> ACTIVE
+    state ACTIVE {
+        [*] --> IDLE
+        IDLE --> HEATING : TEMP_LOW
+        HEATING --> IDLE : TEMP_OK
+        IDLE --> COOLING : TEMP_HIGH
+        COOLING --> IDLE : TEMP_OK
+        HEATING --> COOLING : TEMP_HIGH
+        COOLING --> HEATING : TEMP_LOW
+    }
+    ACTIVE --> FAULT : EVENT_FAULT (active_run)
+    FAULT --> ACTIVE : EVENT_RESET
+    ACTIVE --> [*] : EVENT_SHUTDOWN
+    FAULT --> [*] : EVENT_SHUTDOWN
+</pre>
+    </details>
+  </div>
+
+  <p class="foot">application/samples/smf_thermostat &middot; Zephyr 状态机框架(SMF)示例</p>
+</div>
+</body>
+</html>
