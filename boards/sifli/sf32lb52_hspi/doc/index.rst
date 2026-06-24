@@ -3,19 +3,19 @@
 Overview
 ********
 
-HSPI-SF32LB52 (Huangshan Pi) is an LCKFB development board based on the
+SF32LB52-HSPI (Huangshan Pi) is an LCKFB development board based on the
 SF32LB52x series chip SoC. This out-of-tree board definition currently starts
 from the SiFli SF32LB52-DevKit-LCD because both boards use an SF32LB52 module.
 Board-specific pin mappings should be checked against the Huangshan Pi hardware
 schematic before enabling production peripherals.
 
 More information about the board can be found at the
-`HSPI-SF32LB52 website`_ and the `SiFli official board guide`_.
+`SF32LB52-HSPI website`_ and the `SiFli official board guide`_.
 
 Hardware
 ********
 
-HSPI-SF32LB52 provides the following hardware components:
+SF32LB52-HSPI provides the following hardware components:
 
 - SF32LB52-MOD-1-N16R8 module based on SF32LB525UC6
 
@@ -69,14 +69,14 @@ artifacts and a consolidated pin/resource reference page:
 - :download:`Core board netlist <Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel>`
 - :download:`LCD board netlist <Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel>`
 - :download:`BOM spreadsheet <BOM_立创·黄山派SF32LB52开发板.xlsx>`
-- :download:`SF32LB52x chip datasheet <DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf>`
-- :download:`SF32LB52x user manual <UM5201-SF32LB52x-用户手册 V0p8p8.pdf>`
-- :download:`SF32LB52x product brief <PB5201-SF32LB52x-产品简介.pdf>`
-- :download:`SF32LB52-MOD-1 module datasheet <DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf>`
+- :download:`SF32LB52x chip datasheet <../../common/doc/DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf>`
+- :download:`SF32LB52x user manual <../../common/doc/UM5201-SF32LB52x-用户手册 V0p8p8.pdf>`
+- :download:`SF32LB52x product brief <../../common/doc/PB5201-SF32LB52x-产品简介.pdf>`
+- :download:`SF32LB52-MOD-1 module datasheet <../../common/doc/DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf>`
 - :download:`Original EasyEDA Pro project archive <ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2>`
 - :download:`Updated EasyEDA Pro project <ProPrj_立创·黄山派SF32LB52开发板V1.2(202504250924).epro>`
-- :download:`Module schematic PDF <SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf>`
-- :download:`Module PCB PDF <SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf>`
+- :download:`Module schematic PDF <../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf>`
+- :download:`Module PCB PDF <../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf>`
 
 Supported Features
 ==================
@@ -95,7 +95,7 @@ References
 
 .. target-notes::
 
-.. _HSPI-SF32LB52 website:
+.. _SF32LB52-HSPI website:
    https://wiki.lckfb.com/zh-hans/hspi-sf32lb52/hardware/board.html
 
 .. _SiFli official board guide:

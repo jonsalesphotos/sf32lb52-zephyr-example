@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SF32LB52-DevKit-LCD 引脚与板级资源速查</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb;
+      --paper: #ffffff;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #d9e2ef;
+      --line-strong: #b7c5d7;
+      --brand: #166c8c;
+      --brand-2: #2f855a;
+      --warn: #a15c07;
+      --danger: #a23b3b;
+      --soft: #e9f6f8;
+      --soft-2: #eef8f1;
+      --soft-warn: #fff7e8;
+      --code: #f3f6f9;
+      --shadow: 0 12px 32px rgba(26, 45, 71, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+    }
+
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      background: #102a43;
+      color: #f8fafc;
+      padding: 34px 24px 28px;
+      border-bottom: 4px solid #38a3a5;
+    }
+
+    header .wrap, main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 42px); line-height: 1.15; }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 10px; font-size: 18px; }
+    p  { margin: 0 0 12px; }
+
+    header p { max-width: 900px; margin: 0; color: #d9e7f3; font-size: 16px; }
+
+    main { padding: 24px 0 48px; }
+
+    section {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .meta-row, .card-grid, .resource-grid { display: grid; gap: 12px; }
+
+    .meta-row { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 18px; }
+
+    .meta {
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .meta strong { display: block; color: #ffffff; font-size: 14px; }
+    .meta span { color: #c8d8e6; font-size: 13px; }
+
+    .card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .card, .resource-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: #fbfcfe;
+    }
+
+    .card strong, .resource-card strong { display: block; margin-bottom: 5px; font-size: 15px; }
+
+    .resource-card ul, .notes ul, .todo ul { margin: 8px 0 0; padding-left: 20px; }
+    .resource-card li, .notes li, .todo li { margin: 4px 0; }
+
+    .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+
+    .chip {
+      display: inline-flex; align-items: center; min-height: 28px;
+      padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line);
+      background: #f8fafc; font-size: 13px; white-space: nowrap;
+    }
+    .chip.ok { background: var(--soft-2); border-color: #b7e0c2; color: #17633b; }
+    .chip.warn { background: var(--soft-warn); border-color: #f1ca8b; color: #7d4700; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0 14px; }
+
+    input[type="search"] {
+      width: min(440px, 100%); min-height: 38px; padding: 8px 12px;
+      border: 1px solid var(--line-strong); border-radius: 6px; font: inherit;
+      background: #ffffff; color: var(--ink);
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; vertical-align: top; text-align: left; }
+    th {
+      position: sticky; top: 0; z-index: 1;
+      background: #eaf2f7; color: #17324d; font-weight: 700;
+    }
+    tbody tr:nth-child(even) { background: #fbfdff; }
+
+    code {
+      padding: 2px 5px; border-radius: 5px; background: var(--code);
+      font-family: "Cascadia Code", Consolas, monospace; font-size: 0.92em;
+    }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .table-wrap table { border: 0; min-width: 820px; }
+    .table-wrap th:first-child, .table-wrap td:first-child { border-left: 0; }
+    .table-wrap th:last-child, .table-wrap td:last-child { border-right: 0; }
+    .table-wrap tr:first-child th { border-top: 0; }
+
+    .callout {
+      border-radius: 8px; padding: 13px 14px; margin: 12px 0 0;
+      border: 1px solid #aad6dd; background: var(--soft);
+    }
+    .callout.warn { border-color: #f0bf72; background: var(--soft-warn); color: #613800; }
+    .callout.ok { border-color: #b7e0c2; background: var(--soft-2); color: #17532f; }
+
+    .source-list {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px; margin: 0; padding: 0; list-style: none;
+    }
+    .source-list li { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfcfe; }
+    .source-list strong { display: block; margin-bottom: 4px; }
+
+    .small { color: var(--muted); font-size: 13px; }
+
+    .tag {
+      display: inline-block; padding: 2px 7px; border-radius: 4px;
+      background: #eef2f7; color: #334155; font-size: 12px; white-space: nowrap;
+    }
+    .tag.ok { background: #dff4e7; color: #16643b; }
+    .tag.warn { background: #fff1cf; color: #805000; }
+    .tag.bad { background: #ffe2e2; color: #8a2c2c; }
+    .tag.mux { background: #e8eefc; color: #2b4a8a; }
+
+    .foot { color: var(--muted); font-size: 13px; margin-top: 12px; }
+
+    @media (max-width: 860px) {
+      .meta-row, .card-grid, .resource-grid, .source-list { grid-template-columns: 1fr; }
+      section { padding: 18px; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      header { color: #111827; background: #fff; border-bottom: 2px solid #111827; }
+      header p, .meta span { color: #374151; }
+      section { box-shadow: none; break-inside: avoid; }
+      .toolbar { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>SF32LB52-DevKit-LCD 引脚与板级资源速查</h1>
+      <p>面向 Zephyr 板级移植的硬件资料页。引脚分配以官方 V1.2.0 原理图网表(PADS export)和 Zephyr 设备树为权威来源；
+      与立创·黄山派(<code>sf32lb52_hspi</code>)不同,本板是 SiFli 官方屏幕开发套件,采用 <strong>40P 树莓派风格排针</strong>和 <strong>22P QSPI 屏幕 FPC</strong>,
+      设备树的引脚分配与本板硬件网表完全一致。</p>
+      <div class="meta-row">
+        <div class="meta">
+          <strong>板卡</strong>
+          <span>SiFli SF32LB52-DevKit-LCD（硬件 V1.2.0）</span>
+        </div>
+        <div class="meta">
+          <strong>主控 / 模组</strong>
+          <span>SF32LB52-MOD-1-N16R8 / SF32LB525UC6</span>
+        </div>
+        <div class="meta">
+          <strong>权威数据源</strong>
+          <span>V1.2.0 原理图网表 + 设备树 DTS</span>
+        </div>
+        <div class="meta">
+          <strong>更新日期</strong>
+          <span>2026-06-24</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>资料来源</h2>
+      <ul class="source-list">
+        <li>
+          <strong>本板原理图网表（最权威的引脚数据）</strong>
+          <a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD-1-SCH_V1.2.0.txt">SF32LB52-DevKit-LCD-1-SCH_V1.2.0.txt</a>
+          <p class="small">PADS-LOGIC V9.5 导出网表。本页所有连接器/模组引脚映射均由此网表逐一解析,并与设备树交叉核对。</p>
+        </li>
+        <li>
+          <strong>本板原理图 PDF</strong>
+          <a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD-1-SCH_V1.2.0.pdf">SF32LB52-DevKit-LCD-1-SCH_V1.2.0.pdf</a>
+          <p class="small">用于人工复核电源、0&nbsp;Ω 跳线选项、模拟开关(TS5A3157)的复用走向。</p>
+        </li>
+        <li>
+          <strong>当前 Zephyr 板文件（设备树）</strong>
+          <a href="../../../../../zephyr/boards/sifli/sf32lb52_devkit_lcd/sf32lb52_devkit_lcd.dts">sf32lb52_devkit_lcd.dts</a>，
+          <a href="../../../../../zephyr/boards/sifli/sf32lb52_devkit_lcd/sf32lb52_devkit_lcd-pinctrl.dtsi">-pinctrl.dtsi</a>，
+          <a href="../../../../../zephyr/boards/sifli/sf32lb52_devkit_lcd/sf32lb52_devkit_lcd_defconfig">_defconfig</a>
+          <p class="small">上游板文件位于 <code>zephyr/boards/sifli/sf32lb52_devkit_lcd/</code>。本页"DTS 现状"列以此为准。</p>
+        </li>
+        <li>
+          <strong>SiFli 官方开发板页 / Zephyr 文档</strong>
+          <a href="https://wiki.sifli.com/board/sf32lb52x/SF32LB52-DevKit-LCD.html">wiki.sifli.com · SF32LB52-DevKit-LCD</a>，
+          <a href="https://docs.zephyrproject.org/latest/boards/sifli/sf32lb52_devkit_lcd/doc/index.html">docs.zephyrproject.org · sf32lb52_devkit_lcd</a>
+          <p class="small">用于器件型号、官方接口描述与支持的屏幕型号(<code>TFT-H043A28WQISTKN22</code>)。</p>
+        </li>
+        <li>
+          <strong>共用 SiFli 规格书（位于 boards/sifli/common/doc）</strong>
+          <a href="../../common/doc/DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf">芯片技术规格书 DS5201</a>，
+          <a href="../../common/doc/DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf">模组技术规格书 DS5203</a>，
+          <a href="../../common/doc/UM5201-SF32LB52x-用户手册 V0p8p8.pdf">用户手册 UM5201</a>，
+          <a href="../../common/doc/PB5201-SF32LB52x-产品简介.pdf">产品简介 PB5201</a>
+          <p class="small">芯片/模组规格书为各 SF32LB52x 板共用,已统一放在 <code>boards/sifli/common/doc</code>。</p>
+        </li>
+        <li>
+          <strong>本板硬件工程资料</strong>
+          <a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD-1-BOM-V1.2.0.xlsx">BOM</a>，
+          <a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD_PCB_V1.2.0.pdf">PCB PDF</a>，
+          <a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD_PLACEMENT_V1.2.0.pdf">贴片图</a>，
+          Gerber / Stencil 见 <code>SF32LB52-DevKit-LCD_V1.2.0/</code> 目录。
+          <p class="small">由官方 <code>SF32LB52-DevKit-LCD_V1.2.0.zip</code> 解压整理而来。</p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>板级资源总览</h2>
+      <div class="resource-grid">
+        <div class="resource-card">
+          <strong>存储与时钟</strong>
+          <ul>
+            <li>8&nbsp;MB OPI&nbsp;PSRAM（来自 SF32LB525UC6），Zephyr 映射到 <code>0x60000000</code>，走 <code>mpi1</code>。</li>
+            <li>128&nbsp;Mb QSPI&nbsp;NOR Flash <code>PY25Q128HA</code>，走 <code>mpi2</code>，连接模组 <code>PA_12–PA_17</code>。</li>
+            <li>48&nbsp;MHz 主晶振（<code>hxt48</code>），32.768&nbsp;kHz 低速晶振（<code>PA_22/PA_23</code>，<code>lxt32</code>）。</li>
+          </ul>
+        </div>
+        <div class="resource-card">
+          <strong>显示与触摸</strong>
+          <ul>
+            <li>22P 0.5mm QSPI 屏幕 FPC（<code>J0102</code>），支持 SPI/DSPI/QSPI（含 DDR）和 MCU/8080 屏。</li>
+            <li>设备树默认配置 <code>chipone,co5300-qspi</code> AMOLED（<code>390 × 450</code>，QSPI，50&nbsp;MHz）作为示例屏。</li>
+            <li>官方列出的可选屏型号：<code>TFT-H043A28WQISTKN22</code>（QSPI 接口）。</li>
+            <li>触摸为 I2C 接口：SDA <code>PA_33</code>、SCL <code>PA_30</code>（FPC pin19/20）。</li>
+            <li>背光为 FPC <code>LEDA/LEDK</code>，由板载升压 <code>AW9962</code> 驱动，PWM 控制脚 <code>PA_01</code>。</li>
+          </ul>
+        </div>
+        <div class="resource-card">
+          <strong>USB、串口与调试</strong>
+          <ul>
+            <li>两个 Type-C：一个经 <code>CH343P</code> USB 转串口用于下载/调试；一个为原生 USB 2.0 FS。</li>
+            <li>调试串口 <code>PA_19</code> TXD / <code>PA_18</code> RXD，Zephyr 控制台速率 <code>1000000</code>。</li>
+            <li>原生 USB：<code>PA_35</code> DP / <code>PA_36</code> DM（USB-C <code>J0114</code>）。</li>
+            <li>40P 排针另引出一路 UART：<code>PA_27</code> TXD（pin8）/ <code>PA_20</code> RXD（pin10）。</li>
+          </ul>
+        </div>
+        <div class="resource-card">
+          <strong>电源与电池</strong>
+          <ul>
+            <li>供电：双 USB Type-C 或单节锂电池（电池连接器 <code>J0100</code>，2.0mm BTB）。</li>
+            <li>线性充电 IC <code>ETA9640P</code>，官方文档：最大 1&nbsp;A、默认 450&nbsp;mA。</li>
+            <li>系统电源 <code>TLV62569</code> DC-DC，<code>BL8077</code> ×2 LDO（<code>VSYS</code> → 3.3V / <code>AVDD_3V3</code>）。</li>
+            <li>40P 排针引出 <code>3V3</code>（pin1/17）、<code>5V</code>（pin2/4）和多个 <code>GND</code>。</li>
+          </ul>
+        </div>
+        <div class="resource-card">
+          <strong>音频</strong>
+          <ul>
+            <li>板载 MEMS MIC <code>WMM7037</code>（<code>MIC_BIAS</code> / <code>MIC_ADC_IN</code>）。</li>
+            <li>模拟音频输出 <code>AU_DAC1P/N_OUT</code>，经 Class-D 功放 <code>NS4150B</code> 到喇叭连接器 <code>J0101</code>。</li>
+            <li>功放使能 <code>PA_10</code>（设备树 <code>audcodec</code> 的 <code>pa-power-gpios</code>）。</li>
+          </ul>
+        </div>
+        <div class="resource-card">
+          <strong>扩展与板载外设</strong>
+          <ul>
+            <li>40P 树莓派风格 2×20 排针（<code>J0117</code>），引出 LCD QSPI、SPI/SD、I2C、UART、GPIO、电源。</li>
+            <li>Micro SD 卡槽（<code>J0115</code>），SPI1：<code>PA_24/25/28/29</code>，检测 <code>PA_26</code>。</li>
+            <li>板载 <code>SK6812MINI-HS</code> RGB LED（数据 <code>PA_32</code>）。</li>
+            <li>用户 LED（蓝，<code>D0104</code>，<code>PA_26</code>，与 TF 检测共用网络）；充电状态绿/红 LED 由充电 IC 驱动。</li>
+            <li>按键 <code>S0100</code>（PWKEY/HOME，<code>PA_34</code>）、<code>S0101</code>（功能键 KEY2，<code>PA_11</code>）、<code>S0102</code>（板载复位/启动键）。</li>
+            <li>两片模拟开关 <code>TS5A3157</code>（<code>U0110/U0111</code>）+ 0&nbsp;Ω 跳线,在 40P 排针与 22P FPC / SDIO 之间复用部分 GPIO。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>当前 Zephyr 设备树状态</h2>
+      <div class="card-grid">
+        <div class="card">
+          <strong>已启用且与本板网表一致</strong>
+          <div class="chip-list">
+            <span class="chip ok">USART1 PA19/PA18</span>
+            <span class="chip ok">I2C1 触摸 PA33/PA30</span>
+            <span class="chip ok">SPI1 TF 卡 PA24/25/28/29</span>
+            <span class="chip ok">LCDC QSPI PA02–PA08 / PA00</span>
+            <span class="chip ok">co5300 AVDD PA37</span>
+            <span class="chip ok">KEY1 PA34</span>
+            <span class="chip ok">KEY2 PA11</span>
+            <span class="chip ok">LED0 PA26</span>
+            <span class="chip ok">Audio PA EN PA10</span>
+            <span class="chip ok">MPI1 OPI PSRAM</span>
+            <span class="chip ok">MPI2 QSPI NOR PA12–PA17</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>硬件存在、设备树暂未配置</strong>
+          <div class="chip-list">
+            <span class="chip warn">RGB LED PA32（需 LED-strip 驱动）</span>
+            <span class="chip warn">背光 PA01 / AW9962</span>
+            <span class="chip warn">触摸控制器节点（INT/RST 候选 PA31/PA09）</span>
+            <span class="chip warn">原生 USB PA35/PA36</span>
+            <span class="chip warn">40P 第二路 UART PA27/PA20</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>当前 chosen 节点</strong>
+          <div class="chip-list">
+            <span class="chip">console / shell-uart: usart1</span>
+            <span class="chip">flash: py25q128ha @ mpi2</span>
+            <span class="chip">display: co5300</span>
+            <span class="chip">bt-hci: mailbox</span>
+            <span class="chip">entropy: trng</span>
+            <span class="chip">crc: crc</span>
+          </div>
+        </div>
+      </div>
+      <div class="callout ok">
+        <strong>结论：</strong>本板设备树就是为 SF32LB52-DevKit-LCD 编写的,所有已启用外设的引脚都能在 V1.2.0 网表中一一对应（详见下方"DTS ↔ 硬件一致性核对"）。
+        与之相对,<code>sf32lb52_hspi</code>(黄山派)虽继承了同一份起步 DTS,但其硬件是另一块板,因此那份文档里列出的多处"DTS 待修正",在本板上并不存在。
+      </div>
+    </section>
+
+    <section>
+      <h2>40P 树莓派风格扩展排针 J0117（2×20，2.54mm）</h2>
+      <div class="toolbar">
+        <input type="search" data-filter="hdr-table" placeholder="过滤 40P 排针，如 PA_24 / UART / LCD / GND">
+        <span class="small">来源：本板网表 <code>J0117</code>（物理 1–40 脚）。奇偶脚按 2×20 物理排列。</span>
+      </div>
+      <div class="table-wrap">
+        <table id="hdr-table">
+          <thead>
+            <tr>
+              <th>脚号</th>
+              <th>网络 / 模组 GPIO</th>
+              <th>功能</th>
+              <th>当前 Zephyr 状态</th>
+              <th>板上资源占用 / 备注</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><code>VDD_3V3</code></td><td>3.3 V 输出</td><td><span class="tag">电源</span></td><td>核心 3.3 V。</td></tr>
+            <tr><td>2</td><td><code>5V</code></td><td>5 V（USB VBUS）</td><td><span class="tag">电源</span></td><td>与 USB-C VBUS 相连。</td></tr>
+            <tr><td>3</td><td><code>PA_42</code></td><td>GPIO（树莓派 SDA 位）</td><td><span class="tag">未配</span></td><td>经 0&nbsp;Ω 默认连 <code>PA_42</code>，与 22P FPC pin9 同源；另有 MPI2/SDIO 备选位。</td></tr>
+            <tr><td>4</td><td><code>5V</code></td><td>5 V（USB VBUS）</td><td><span class="tag">电源</span></td><td>同 2 脚。</td></tr>
+            <tr><td>5</td><td><code>PA_41</code></td><td>GPIO（树莓派 SCL 位）</td><td><span class="tag">未配</span></td><td>经 0&nbsp;Ω 默认连 <code>PA_41</code>（FPC pin8）；备选 <code>SDIO_D2</code>。</td></tr>
+            <tr><td>6</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>7</td><td><code>PA_43</code></td><td>GPIO（树莓派 GPIO4 位）</td><td><span class="tag">未配</span></td><td>经 0&nbsp;Ω 默认连 <code>PA_43</code>（FPC pin10）；备选 <code>PA_13/MPI2</code>。</td></tr>
+            <tr><td>8</td><td><code>PA_27</code></td><td>UART TXD（模组 pin21）</td><td><span class="tag">未配</span></td><td>40P 第二路 UART TX，经 22&nbsp;Ω 串阻。</td></tr>
+            <tr><td>9</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>10</td><td><code>PA_20</code></td><td>UART RXD（模组 pin28）</td><td><span class="tag">未配</span></td><td>40P 第二路 UART RX，经 22&nbsp;Ω 串阻。</td></tr>
+            <tr><td>11</td><td><code>PA_08</code></td><td>LCD QSPI D3</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin4 同源，经模拟开关/串阻复用。</td></tr>
+            <tr><td>12</td><td><code>PA_05</code></td><td>LCD QSPI D0</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin14 同源。</td></tr>
+            <tr><td>13</td><td><code>PA_40</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>经 0&nbsp;Ω 默认连 <code>PA_40</code>（FPC pin7）；备选 <code>PA_17/MPI2</code>。</td></tr>
+            <tr><td>14</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>15</td><td><code>PA_39</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>经 0&nbsp;Ω 默认连 <code>PA_39</code>（FPC pin6）；备选 <code>PA_16/MPI2</code>。</td></tr>
+            <tr><td>16</td><td><code>PA_37</code></td><td>GPIO / LCD AVDD 使能</td><td><span class="tag ok">co5300 AVDD</span></td><td>经 0&nbsp;Ω 默认连 <code>PA_37</code>（FPC pin5）；备选 <code>SDIO_CMD</code>。设备树用作屏幕 AVDD 使能。</td></tr>
+            <tr><td>17</td><td><code>VDD_3V3</code></td><td>3.3 V 输出</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>18</td><td><code>PA_38</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>另为触摸 SCL 备选位（0&nbsp;Ω <code>R0168</code>，默认走 <code>PA_30</code>）。</td></tr>
+            <tr><td>19</td><td><code>PA_24</code></td><td>SPI1 DIO/DO</td><td><span class="tag ok">SPI1</span></td><td>与板载 Micro SD 共用。</td></tr>
+            <tr><td>20</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>21</td><td><code>PA_25</code></td><td>SPI1 DI</td><td><span class="tag ok">SPI1</span></td><td>与板载 Micro SD 共用。</td></tr>
+            <tr><td>22</td><td><code>PA_07</code></td><td>LCD QSPI D2</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin3 同源。</td></tr>
+            <tr><td>23</td><td><code>PA_28</code></td><td>SPI1 CLK</td><td><span class="tag ok">SPI1</span></td><td>与板载 Micro SD 共用。</td></tr>
+            <tr><td>24</td><td><code>PA_29</code></td><td>SPI1 CS</td><td><span class="tag ok">SPI1</span></td><td>与板载 Micro SD 共用。</td></tr>
+            <tr><td>25</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>26</td><td><code>PA_31</code></td><td>GPIO（触摸 INT 候选）</td><td><span class="tag">未配</span></td><td>与 22P FPC pin18 同源。</td></tr>
+            <tr><td>27</td><td><code>PA_30</code></td><td>触摸 I2C SCL</td><td><span class="tag ok">I2C1 SCL</span></td><td>与 22P FPC pin20（<code>CTP_I2C_SCL</code>）同源，2.2K 上拉到 3V3。</td></tr>
+            <tr><td>28</td><td><code>PA_22</code></td><td>XTAL32K_XI</td><td><span class="tag ok">lxt32</span></td><td>32.768&nbsp;kHz 晶振,引出仅供测量,不建议复用。</td></tr>
+            <tr><td>29</td><td><code>PA_23</code></td><td>XTAL32K_XO</td><td><span class="tag ok">lxt32</span></td><td>32.768&nbsp;kHz 晶振。</td></tr>
+            <tr><td>30</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>31</td><td><code>PA_33</code></td><td>触摸 I2C SDA</td><td><span class="tag ok">I2C1 SDA</span></td><td>与 22P FPC pin19 同源，2.2K 上拉。</td></tr>
+            <tr><td>32</td><td><code>PA_00</code></td><td>LCD QSPI RSTB</td><td><span class="tag ok">display reset</span></td><td>与 22P FPC pin12 同源。</td></tr>
+            <tr><td>33</td><td><code>PA_01</code></td><td>LCD 背光 PWM</td><td><span class="tag warn">DTS 未配</span></td><td>背光升压(<code>AW9962</code>)控制脚。</td></tr>
+            <tr><td>34</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>35</td><td><code>PA_06</code></td><td>LCD QSPI D1</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin16 同源。</td></tr>
+            <tr><td>36</td><td><code>PA_02</code></td><td>LCD QSPI TE</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin11 同源。</td></tr>
+            <tr><td>37</td><td><code>PA_09</code></td><td>GPIO（触摸 RST 候选）</td><td><span class="tag">未配</span></td><td>与 22P FPC pin21 同源。</td></tr>
+            <tr><td>38</td><td><code>PA_04</code></td><td>LCD QSPI CLK</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin13 同源。</td></tr>
+            <tr><td>39</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td></td></tr>
+            <tr><td>40</td><td><code>PA_03</code></td><td>LCD QSPI CS</td><td><span class="tag ok">LCDC QSPI</span></td><td>与 22P FPC pin15 同源。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="foot">注：3/5/7/13/15/16 脚通过 0&nbsp;Ω 跳线在"FPC GPIO 组(PA_37/39/40/41/42/43)"与"MPI2/SDIO 总线"之间二选一,出厂默认连到 PA 组(上表所列)。改用 SDIO 4-bit 时需重贴跳线,具体见原理图。</p>
+    </section>
+
+    <section>
+      <h2>22P QSPI 屏幕 FPC J0102（0.5mm pitch）</h2>
+      <div class="toolbar">
+        <input type="search" data-filter="fpc-table" placeholder="过滤 22P FPC，如 QSPI / 触摸 / PA_33">
+        <span class="small">来源：本板网表 <code>J0102</code>（<code>FPC-05F-22PH20-MCU8-QSPI</code>）。</span>
+      </div>
+      <div class="table-wrap">
+        <table id="fpc-table">
+          <thead>
+            <tr>
+              <th>脚号</th>
+              <th>网络 / 模组 GPIO</th>
+              <th>功能</th>
+              <th>当前 Zephyr 状态</th>
+              <th>板上资源占用 / 备注</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><code>LEDK</code></td><td>背光 LED 阴极</td><td><span class="tag">背光</span></td><td>背光升压 <code>AW9962</code> 输出回路。</td></tr>
+            <tr><td>2</td><td><code>LEDA</code></td><td>背光 LED 阳极</td><td><span class="tag">背光</span></td><td>背光升压输出，PWM 控制脚 <code>PA_01</code>（40P pin33）。</td></tr>
+            <tr><td>3</td><td><code>PA_07</code></td><td>LCD QSPI D2</td><td><span class="tag ok">LCDC QSPI</span></td><td>经串阻到 FPC。</td></tr>
+            <tr><td>4</td><td><code>PA_08</code></td><td>LCD QSPI D3</td><td><span class="tag ok">LCDC QSPI</span></td><td>经串阻到 FPC。</td></tr>
+            <tr><td>5</td><td><code>PA_37</code></td><td>LCD AVDD 使能 / GPIO</td><td><span class="tag ok">co5300 AVDD</span></td><td>设备树 <code>avdd-enable-gpios</code> = <code>&amp;gpioa_32_44 5</code>（PA_37）。</td></tr>
+            <tr><td>6</td><td><code>PA_39</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>屏幕模组通用 GPIO，可作触摸/屏控扩展。</td></tr>
+            <tr><td>7</td><td><code>PA_40</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>屏幕模组通用 GPIO。</td></tr>
+            <tr><td>8</td><td><code>PA_41</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>屏幕模组通用 GPIO，2.2K 上拉。</td></tr>
+            <tr><td>9</td><td><code>PA_42</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>屏幕模组通用 GPIO，2.2K 上拉。</td></tr>
+            <tr><td>10</td><td><code>PA_43</code></td><td>GPIO</td><td><span class="tag">未配</span></td><td>屏幕模组通用 GPIO。</td></tr>
+            <tr><td>11</td><td><code>PA_02</code></td><td>LCD QSPI TE</td><td><span class="tag ok">LCDC QSPI</span></td><td>tearing-effect。</td></tr>
+            <tr><td>12</td><td><code>PA_00</code></td><td>LCD QSPI RSTB</td><td><span class="tag ok">display reset</span></td><td>设备树 <code>reset-gpios</code> = <code>&amp;gpioa_00_31 0</code>（PA_00，低有效）。</td></tr>
+            <tr><td>13</td><td><code>PA_04</code></td><td>LCD QSPI CLK</td><td><span class="tag ok">LCDC QSPI</span></td><td></td></tr>
+            <tr><td>14</td><td><code>PA_05</code></td><td>LCD QSPI D0</td><td><span class="tag ok">LCDC QSPI</span></td><td></td></tr>
+            <tr><td>15</td><td><code>PA_03</code></td><td>LCD QSPI CS</td><td><span class="tag ok">LCDC QSPI</span></td><td></td></tr>
+            <tr><td>16</td><td><code>PA_06</code></td><td>LCD QSPI D1</td><td><span class="tag ok">LCDC QSPI</span></td><td></td></tr>
+            <tr><td>17</td><td><code>VDD_3V3</code></td><td>3.3 V 输出</td><td><span class="tag">电源</span></td><td>屏幕 / 触摸 3.3 V。</td></tr>
+            <tr><td>18</td><td><code>PA_31</code></td><td>GPIO（触摸 INT 候选）</td><td><span class="tag">未配</span></td><td>与 40P pin26 同源。</td></tr>
+            <tr><td>19</td><td><code>PA_33</code></td><td>触摸 I2C SDA</td><td><span class="tag ok">I2C1 SDA</span></td><td>设备树 <code>i2c1</code> SDA = <code>PA33_I2C1_SDA</code>。</td></tr>
+            <tr><td>20</td><td><code>CTP_I2C_SCL</code>（<code>PA_30</code>）</td><td>触摸 I2C SCL</td><td><span class="tag ok">I2C1 SCL</span></td><td>网名 <code>CTP_I2C_SCL</code>,经 0&nbsp;Ω <code>R0167</code> 默认连到 <code>PA_30</code>（另有 0&nbsp;Ω <code>R0168</code> 备选到 <code>PA_38</code>），2.2K 上拉到 3V3;设备树 <code>i2c1</code> SCL = <code>PA30_I2C1_SCL</code>。</td></tr>
+            <tr><td>21</td><td><code>PA_09</code></td><td>GPIO（触摸 RST 候选）</td><td><span class="tag">未配</span></td><td>与 40P pin37 同源。</td></tr>
+            <tr><td>22</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td><td>另有 23/24 屏蔽/固定脚接 GND。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>SF32LB52-MOD-1-N16R8 模组 68P 管脚（U0100）</h2>
+      <div class="toolbar">
+        <input type="search" data-filter="module-table" placeholder="过滤模组管脚，如 PA_30 / LCD / MPI2 / GND">
+        <span class="small">来源：本板网表 <code>U0100</code> 68 脚逐一解析（含经串阻/模拟开关解出的最终 GPIO）。</span>
+      </div>
+      <div class="table-wrap">
+        <table id="module-table">
+          <thead>
+            <tr>
+              <th>模组脚号</th>
+              <th>GPIO / 网络</th>
+              <th>本板功能</th>
+              <th>引出位置</th>
+              <th>Zephyr 现状</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><code>GND</code></td><td>接地</td><td>—</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>2</td><td><code>PA_44</code></td><td>VBUS / 充电器插入检测</td><td>板内分压</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>3</td><td><code>PA_43</code></td><td>GPIO</td><td>22P FPC pin10；40P pin7（0Ω）</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>4</td><td><code>PA_42</code></td><td>GPIO</td><td>22P FPC pin9；40P pin3（0Ω）</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>5</td><td><code>PA_23</code></td><td>XTAL32K_XO</td><td>晶振；40P pin29</td><td><span class="tag ok">lxt32</span></td></tr>
+            <tr><td>6</td><td><code>PA_22</code></td><td>XTAL32K_XI</td><td>晶振；40P pin28</td><td><span class="tag ok">lxt32</span></td></tr>
+            <tr><td>7</td><td><code>PA_41</code></td><td>GPIO</td><td>22P FPC pin8；40P pin5（0Ω）</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>8</td><td><code>PA_40</code></td><td>GPIO</td><td>22P FPC pin7；40P pin13（0Ω）</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>9</td><td><code>PA_39</code></td><td>GPIO</td><td>22P FPC pin6；40P pin15（0Ω）</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>10</td><td><code>PA_38</code></td><td>GPIO / 触摸 SCL 备选</td><td>40P pin18</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>11</td><td><code>PA_37</code></td><td>LCD AVDD 使能 / GPIO</td><td>22P FPC pin5；40P pin16（0Ω）</td><td><span class="tag ok">co5300 AVDD</span></td></tr>
+            <tr><td>12</td><td><code>PA_36</code></td><td>USB_DM</td><td>原生 USB-C J0114</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>13</td><td><code>PA_35</code></td><td>USB_DP</td><td>原生 USB-C J0114</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>14</td><td><code>PA_34</code></td><td>PWKEY / HOME，长按复位</td><td>按键 S0100</td><td><span class="tag ok">KEY1 (sw0)</span></td></tr>
+            <tr><td>15</td><td><code>PA_33</code></td><td>触摸 I2C SDA</td><td>22P FPC pin19；40P pin31</td><td><span class="tag ok">I2C1 SDA</span></td></tr>
+            <tr><td>16</td><td><code>PA_32</code></td><td>RGB LED 数据</td><td>板载 SK6812 U0105</td><td><span class="tag warn">未配</span></td></tr>
+            <tr><td>17</td><td><code>AVDD_3V3</code></td><td>模拟 3.3 V（BL8077 LDO）</td><td>板内电源</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>18</td><td><code>PA_24</code></td><td>SPI1 DIO/DO</td><td>Micro SD；40P pin19</td><td><span class="tag ok">SPI1</span></td></tr>
+            <tr><td>19</td><td><code>PA_25</code></td><td>SPI1 DI</td><td>Micro SD；40P pin21</td><td><span class="tag ok">SPI1</span></td></tr>
+            <tr><td>20</td><td><code>PA_26</code></td><td>TF 检测 / 用户 LED（蓝）</td><td>Micro SD CD；LED D0104</td><td><span class="tag ok">LED0（低有效）</span></td></tr>
+            <tr><td>21</td><td><code>PA_27</code></td><td>UART TXD（40P 第二路）</td><td>40P pin8</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>22</td><td><code>PA_28</code></td><td>SPI1 CLK</td><td>Micro SD；40P pin23</td><td><span class="tag ok">SPI1</span></td></tr>
+            <tr><td>23</td><td><code>PA_29</code></td><td>SPI1 CS</td><td>Micro SD；40P pin24</td><td><span class="tag ok">SPI1</span></td></tr>
+            <tr><td>24</td><td><code>PA_30</code></td><td>触摸 I2C SCL</td><td>22P FPC pin20；40P pin27</td><td><span class="tag ok">I2C1 SCL</span></td></tr>
+            <tr><td>25</td><td><code>PA_31</code></td><td>GPIO（触摸 INT 候选）</td><td>22P FPC pin18；40P pin26</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>26</td><td><code>GND</code></td><td>接地</td><td>—</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>27</td><td><code>VSYS</code></td><td>系统电源</td><td>板内电源</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>28</td><td><code>PA_20</code></td><td>UART RXD（40P 第二路）</td><td>40P pin10</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>29</td><td><code>PA_19</code></td><td>调试 UART TXD</td><td>CH343P（下载 USB-C J0106）</td><td><span class="tag ok">USART1 TX</span></td></tr>
+            <tr><td>30</td><td><code>PA_18</code></td><td>调试 UART RXD</td><td>CH343P</td><td><span class="tag ok">USART1 RX</span></td></tr>
+            <tr><td>31</td><td><code>PA_11</code></td><td>功能按键 KEY2</td><td>按键 S0101</td><td><span class="tag ok">KEY2 (sw1)</span></td></tr>
+            <tr><td>32</td><td><code>PA_10</code></td><td>音频功放使能</td><td>NS4150B（U0104）EN</td><td><span class="tag ok">audcodec pa-power</span></td></tr>
+            <tr><td>33</td><td><code>AU_DAC1P_OUT</code></td><td>模拟音频输出 +</td><td>功放 → 喇叭 J0101</td><td><span class="tag ok">audcodec</span></td></tr>
+            <tr><td>34</td><td><code>AU_DAC1N_OUT</code></td><td>模拟音频输出 −</td><td>功放 → 喇叭 J0101</td><td><span class="tag ok">audcodec</span></td></tr>
+            <tr><td>35</td><td><code>GND</code></td><td>接地</td><td>—</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>36</td><td><code>MIC_BIAS</code></td><td>MIC 偏置</td><td>MEMS MIC M0100</td><td><span class="tag ok">audcodec</span></td></tr>
+            <tr><td>37</td><td><code>MIC_ADC_IN</code></td><td>MIC 输入</td><td>MEMS MIC M0100</td><td><span class="tag ok">audcodec</span></td></tr>
+            <tr><td>38</td><td><code>PA_09</code></td><td>GPIO（触摸 RST 候选）</td><td>22P FPC pin21；40P pin37</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>39</td><td><code>PA_08</code></td><td>LCD QSPI D3</td><td>22P FPC pin4；40P pin11</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>40</td><td><code>PA_07</code></td><td>LCD QSPI D2</td><td>22P FPC pin3；40P pin22</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>41</td><td><code>PA_06</code></td><td>LCD QSPI D1</td><td>22P FPC pin16；40P pin35</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>42</td><td><code>PA_05</code></td><td>LCD QSPI D0</td><td>22P FPC pin14；40P pin12</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>43</td><td><code>PA_04</code></td><td>LCD QSPI CLK</td><td>22P FPC pin13；40P pin38</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>44</td><td><code>PA_03</code></td><td>LCD QSPI CS</td><td>22P FPC pin15；40P pin40</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>45</td><td><code>PA_02</code></td><td>LCD QSPI TE</td><td>22P FPC pin11；40P pin36</td><td><span class="tag ok">LCDC QSPI</span></td></tr>
+            <tr><td>46</td><td><code>PA_01</code></td><td>LCD 背光 PWM</td><td>40P pin33；AW9962</td><td><span class="tag warn">未配</span></td></tr>
+            <tr><td>47</td><td><code>PA_00</code></td><td>LCD QSPI RSTB</td><td>22P FPC pin12；40P pin32</td><td><span class="tag ok">display reset</span></td></tr>
+            <tr><td>48–60</td><td><code>GND</code></td><td>接地</td><td>—</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>61</td><td><code>VBAT</code></td><td>电池电压输入</td><td>电池 J0100 / 充电 IC</td><td><span class="tag">电源</span></td></tr>
+            <tr><td>62</td><td><code>PA_21</code></td><td>GPIO</td><td>仅模组（串阻预留）</td><td><span class="tag">未配</span></td></tr>
+            <tr><td>63</td><td><code>PA_15</code></td><td>MPI2 D0</td><td>QSPI NOR（PY25Q128 U0109）</td><td><span class="tag ok">MPI2 NOR</span></td></tr>
+            <tr><td>64</td><td><code>PA_16</code></td><td>MPI2 CLK</td><td>QSPI NOR</td><td><span class="tag ok">MPI2 NOR</span></td></tr>
+            <tr><td>65</td><td><code>PA_17</code></td><td>MPI2 D3</td><td>QSPI NOR</td><td><span class="tag ok">MPI2 NOR</span></td></tr>
+            <tr><td>66</td><td><code>PA_14</code></td><td>MPI2 D2</td><td>QSPI NOR</td><td><span class="tag ok">MPI2 NOR</span></td></tr>
+            <tr><td>67</td><td><code>PA_13</code></td><td>MPI2 D1</td><td>QSPI NOR</td><td><span class="tag ok">MPI2 NOR</span></td></tr>
+            <tr><td>68</td><td><code>PA_12</code></td><td>MPI2 CS</td><td>QSPI NOR</td><td><span class="tag ok">MPI2 NOR</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        模组 63–68 脚（<code>PA_12–PA_17</code>）为 MPI2 QSPI NOR 接口,本板连接 128&nbsp;Mb <code>PY25Q128HA</code> 启动 Flash;需要 SDIO 等复用功能时应核对该接口占用。
+      </div>
+    </section>
+
+    <section>
+      <h2>DTS ↔ 硬件一致性核对</h2>
+      <p class="small">下表把设备树中每一处引脚配置与 V1.2.0 网表逐项比对,结果均为一致（✓）。这也是本板与黄山派文档最大的区别所在。</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>设备树节点 / 配置</th>
+              <th>引脚</th>
+              <th>网表对应（本板硬件）</th>
+              <th>核对</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>chosen console</code> / <code>usart1</code></td><td>PA_19 TXD / PA_18 RXD</td><td>模组 29/30 脚 → CH343P（下载 USB-C）</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>i2c1_default</code></td><td>PA_33 SDA / PA_30 SCL</td><td>22P FPC pin19 / pin20(<code>CTP_I2C_SCL</code>=PA_30) 触摸 I2C</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>spi1_default</code></td><td>PA_24/25/28/29</td><td>Micro SD 卡座 + 40P 排针</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>lcdc_qspi_default</code></td><td>PA_02–PA_08</td><td>22P FPC LCD QSPI TE/CS/CLK/D0–D3</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>co5300 reset-gpios</code></td><td><code>&amp;gpioa_00_31 0</code> = PA_00</td><td>22P FPC pin12 LCD RSTB</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>co5300 avdd-enable-gpios</code></td><td><code>&amp;gpioa_32_44 5</code> = PA_37</td><td>22P FPC pin5 屏幕 AVDD 使能</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>key1 (sw0)</code></td><td><code>&amp;gpioa_32_44 2</code> = PA_34</td><td>按键 S0100（PWKEY/HOME）</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>key2 (sw1)</code></td><td><code>&amp;gpioa_00_31 11</code> = PA_11</td><td>按键 S0101（功能键）</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>led0</code></td><td><code>&amp;gpioa_00_31 26</code> = PA_26（低有效）</td><td>蓝色 LED D0104（与 TF 检测共用网络）</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>audcodec pa-power-gpios</code></td><td><code>&amp;gpioa_00_31 10</code> = PA_10</td><td>NS4150B 功放使能</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>mpi2</code> / <code>py25q128ha</code></td><td>PA_12–PA_17</td><td>PY25Q128HA QSPI NOR（U0109）</td><td><span class="tag ok">✓ 一致</span></td></tr>
+            <tr><td><code>lxt32_default</code></td><td>PA_22 XI / PA_23 XO</td><td>32.768&nbsp;kHz 晶振</td><td><span class="tag ok">✓ 一致</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>板载关键器件</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>器件</th><th>位号</th><th>型号</th><th>用途 / 关联引脚</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>主控模组</td><td>U0100</td><td>SF32LB52-MOD-1-N16R8（SF32LB525UC6）</td><td>68P 模组,8MB PSRAM + 128Mb NOR</td></tr>
+            <tr><td>QSPI NOR Flash</td><td>U0109</td><td>PY25Q128HA</td><td>MPI2,<code>PA_12–PA_17</code></td></tr>
+            <tr><td>充电 IC</td><td>U0101</td><td>ETA9640P</td><td>线性充电,最大 1A / 默认 450mA,<code>VBAT</code></td></tr>
+            <tr><td>系统 DC-DC</td><td>U0106</td><td>TLV62569</td><td>主电源降压</td></tr>
+            <tr><td>背光升压</td><td>U0107</td><td>AW9962</td><td>LCD 背光 LED,<code>LEDA/LEDK</code>,PWM <code>PA_01</code></td></tr>
+            <tr><td>LDO ×2</td><td>U0103 / U0108</td><td>BL8077CB5（3.3V）</td><td><code>VSYS</code> → 3.3V / <code>AVDD_3V3</code></td></tr>
+            <tr><td>音频功放</td><td>U0104</td><td>NS4150B（Class-D）</td><td>使能 <code>PA_10</code>,喇叭 J0101</td></tr>
+            <tr><td>MEMS 麦克风</td><td>M0100</td><td>WMM7037</td><td><code>MIC_BIAS</code> / <code>MIC_ADC_IN</code></td></tr>
+            <tr><td>RGB LED</td><td>U0105</td><td>SK6812MINI-HS</td><td>数据 <code>PA_32</code></td></tr>
+            <tr><td>USB 转串口</td><td>U0102</td><td>CH343P</td><td>下载/调试,USB-C J0106 → <code>PA_19/PA_18</code></td></tr>
+            <tr><td>模拟开关 ×2</td><td>U0110 / U0111</td><td>TS5A3157</td><td>40P 排针 ↔ FPC/SDIO 复用</td></tr>
+            <tr><td>USB-C ×2</td><td>J0106 / J0114</td><td>16P Type-C</td><td>J0106 下载（CH343P）；J0114 原生 USB <code>PA_35/PA_36</code></td></tr>
+            <tr><td>Micro SD</td><td>J0115</td><td>9P TF 卡座</td><td>SPI1 <code>PA_24/25/28/29</code>,检测 <code>PA_26</code></td></tr>
+            <tr><td>电池 / 喇叭连接器</td><td>J0100 / J0101</td><td>2.0mm BTB</td><td><code>VBAT</code> / 音频输出</td></tr>
+            <tr><td>按键</td><td>S0100 / S0101 / S0102</td><td>轻触开关</td><td>HOME(PA_34) / 功能键(PA_11) / 复位或启动</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>本地资料文件清单</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>文件</th><th>用途</th><th>备注</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD-1-SCH_V1.2.0.pdf">SF32LB52-DevKit-LCD-1-SCH_V1.2.0.pdf</a></td><td>整板原理图</td><td>V1.2.0,人工复核用。</td></tr>
+            <tr><td><a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD-1-SCH_V1.2.0.txt">SF32LB52-DevKit-LCD-1-SCH_V1.2.0.txt</a></td><td>原理图网表（PADS export）</td><td>本页引脚映射的权威来源。</td></tr>
+            <tr><td><a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD-1-BOM-V1.2.0.xlsx">SF32LB52-DevKit-LCD-1-BOM-V1.2.0.xlsx</a></td><td>整板 BOM</td><td>核对器件型号与封装。</td></tr>
+            <tr><td><a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD_PCB_V1.2.0.pdf">SF32LB52-DevKit-LCD_PCB_V1.2.0.pdf</a></td><td>PCB 图</td><td>含 <code>.pcb/.asc</code> 工程文件。</td></tr>
+            <tr><td><a href="./SF32LB52-DevKit-LCD_V1.2.0/SF32LB52-DevKit-LCD_PLACEMENT_V1.2.0.pdf">SF32LB52-DevKit-LCD_PLACEMENT_V1.2.0.pdf</a></td><td>贴片坐标图</td><td></td></tr>
+            <tr><td><a href="./SF32LB52-DevKit-LCD_V1.2.0/">SF32LB52-DevKit-LCD_V1.2.0/（Gerber / Stencil / SMTCAD）</a></td><td>制造资料</td><td>Gerber、钢网、SMT 坐标、制版说明等。</td></tr>
+            <tr><td><a href="../../common/doc/DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf">DS5201 芯片技术规格书</a></td><td>SF32LB52x 芯片规格书</td><td>共用,位于 <code>boards/sifli/common/doc</code>。</td></tr>
+            <tr><td><a href="../../common/doc/DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf">DS5203 模组技术规格书</a></td><td>SF32LB52-MOD-1 模组规格书</td><td>共用,核对 68P 模组管脚。</td></tr>
+            <tr><td><a href="../../common/doc/UM5201-SF32LB52x-用户手册 V0p8p8.pdf">UM5201 用户手册</a></td><td>SF32LB52x 用户手册</td><td>共用。</td></tr>
+            <tr><td><a href="../../common/doc/PB5201-SF32LB52x-产品简介.pdf">PB5201 产品简介</a></td><td>SF32LB52x 产品简介</td><td>共用。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf">SF32LB52-MOD-1 模组原理图等</a></td><td>模组硬件包</td><td>共用模组资料,位于 <code>common/doc/SF32LB52-MOD-1-V1.0.0/</code>。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>后续待补充</h2>
+      <div class="callout warn">
+        <p>本页已把能从官方页、V1.2.0 网表和当前设备树直接确认的引脚与资源整理完毕,引脚映射均与设备树核对一致。下列项目建议后续按实际使用补齐:</p>
+        <ul>
+          <li>实际安装的屏幕 / 触摸型号(官方示例为 <code>TFT-H043A28WQISTKN22</code>,设备树示例为 <code>co5300</code> 1.85" AMOLED),据此确定触摸 INT/RST 用 <code>PA_31</code> 还是 <code>PA_09</code>、I2C 地址与极性。</li>
+          <li>RGB LED <code>SK6812</code>(<code>PA_32</code>)的 Zephyr 驱动策略（led-strip / SPI / PWM bitbang）。</li>
+          <li>背光 <code>PA_01</code> + <code>AW9962</code> 的 PWM/GPIO backlight 节点。</li>
+          <li>原生 USB（<code>PA_35/PA_36</code>）与 40P 第二路 UART（<code>PA_27/PA_20</code>）如需启用时的 pinctrl/节点。</li>
+          <li>40P 排针 3/5/7/13/15/16 脚的 0&nbsp;Ω 跳线默认贴装位置(PA 组 vs SDIO),以实物为准。</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    for (const input of document.querySelectorAll("input[type='search'][data-filter]")) {
+      const table = document.getElementById(input.dataset.filter);
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+      input.addEventListener("input", () => {
+        const q = input.value.trim().toLowerCase();
+        for (const row of rows) {
+          row.hidden = q.length > 0 && !row.textContent.toLowerCase().includes(q);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

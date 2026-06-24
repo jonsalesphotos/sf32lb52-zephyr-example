@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HSPI-SF32LB52 引脚与板级资源速查</title>
+  <title>SF32LB52-HSPI 引脚与板级资源速查</title>
   <style>
     :root {
       color-scheme: light;
@@ -397,12 +397,12 @@
 <body>
   <header>
     <div class="wrap">
-      <h1>HSPI-SF32LB52 引脚与板级资源速查</h1>
+      <h1>SF32LB52-HSPI 引脚与板级资源速查</h1>
       <p>面向 Zephyr 板级移植的硬件资料页，整理黄山派 SF32LB52 开发板的 30P 排针、22P QSPI 屏幕 FPC、板载资源、当前设备树配置和需要继续核对的引脚差异。</p>
       <div class="meta-row">
         <div class="meta">
           <strong>板卡</strong>
-          <span>LCKFB HSPI-SF32LB52 / 黄山派</span>
+          <span>LCKFB SF32LB52-HSPI / 黄山派</span>
         </div>
         <div class="meta">
           <strong>主控/模组</strong>
@@ -896,18 +896,18 @@
             <tr><td><a href="./Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel">Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel</a></td><td>核心板网表</td><td>用于核对 <code>CN3</code>、<code>FPC1</code>、<code>U1</code> 的具体连线。</td></tr>
             <tr><td><a href="./Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel">Netlist_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.tel</a></td><td>LCD 屏幕板网表</td><td>用于核对屏幕板 40P/24P/22P 转接关系。</td></tr>
             <tr><td><a href="./BOM_立创·黄山派SF32LB52开发板.xlsx">BOM_立创·黄山派SF32LB52开发板.xlsx</a></td><td>整板 BOM</td><td>用于核对器件型号、封装和物料信息。</td></tr>
-            <tr><td><a href="./DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf">DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf</a></td><td>SF32LB52x 芯片规格书</td><td>PDF 信息显示 60 页。</td></tr>
-            <tr><td><a href="./UM5201-SF32LB52x-用户手册 V0p8p8.pdf">UM5201-SF32LB52x-用户手册 V0p8p8.pdf</a></td><td>SF32LB52x 用户手册</td><td>PDF 信息显示 371 页。</td></tr>
-            <tr><td><a href="./PB5201-SF32LB52x-产品简介.pdf">PB5201-SF32LB52x-产品简介.pdf</a></td><td>SF32LB52x 产品简介</td><td>PDF 信息显示 2 页。</td></tr>
-            <tr><td><a href="./DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf">DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf</a></td><td>SF32LB52-MOD-1 模组规格书</td><td>PDF 信息显示 45 页；用于核对 68P 模组管脚和内部 Flash 连接。</td></tr>
+            <tr><td><a href="../../common/doc/DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf">DS5201-SF32LB52x-芯片技术规格书 V2p5p3.pdf</a></td><td>SF32LB52x 芯片规格书</td><td>PDF 信息显示 60 页；与各 SF32LB52x 板共用，位于 <code>boards/sifli/common/doc</code>。</td></tr>
+            <tr><td><a href="../../common/doc/UM5201-SF32LB52x-用户手册 V0p8p8.pdf">UM5201-SF32LB52x-用户手册 V0p8p8.pdf</a></td><td>SF32LB52x 用户手册</td><td>PDF 信息显示 371 页；与各 SF32LB52x 板共用。</td></tr>
+            <tr><td><a href="../../common/doc/PB5201-SF32LB52x-产品简介.pdf">PB5201-SF32LB52x-产品简介.pdf</a></td><td>SF32LB52x 产品简介</td><td>PDF 信息显示 2 页；与各 SF32LB52x 板共用。</td></tr>
+            <tr><td><a href="../../common/doc/DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf">DS5203-SF32LB52-MOD-1技术规格书 V0p3.pdf</a></td><td>SF32LB52-MOD-1 模组规格书</td><td>PDF 信息显示 45 页；用于核对 68P 模组管脚和内部 Flash 连接；与各使用该模组的板共用。</td></tr>
             <tr><td><a href="./ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2">ProPrj_立创·黄山派SF32LB52开发板_copy_2026-06-24.epro2</a></td><td>嘉立创 EDA 工程归档</td><td>早前下载的工程文件。</td></tr>
             <tr><td><a href="./ProPrj_立创·黄山派SF32LB52开发板V1.2(202504250924).epro">ProPrj_立创·黄山派SF32LB52开发板V1.2(202504250924).epro</a></td><td>嘉立创 EDA 工程</td><td>更新后的 V1.2 工程文件。</td></tr>
-            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf</a></td><td>模组原理图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
-            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf</a></td><td>模组 PCB 图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
-            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PLACEMENT_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PLACEMENT_V1.0.0.pdf</a></td><td>模组贴片坐标图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
-            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1-BOM-V1.0.0.xlsx">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1-BOM-V1.0.0.xlsx</a></td><td>模组 BOM</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
-            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SMTCAD_V1.0.0.xls">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SMTCAD_V1.0.0.xls</a></td><td>模组 SMT 坐标/制造资料</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
-            <tr><td><a href="./SF32LB52-MOD-1-V1.0.0/SF32-LB52X-MOD-1_V1.0.0_制版说明.docx">SF32LB52-MOD-1-V1.0.0/SF32-LB52X-MOD-1_V1.0.0_制版说明.docx</a></td><td>模组制版说明</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SCH_V1.0.0.pdf</a></td><td>模组原理图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PCB_V1.0.0.pdf</a></td><td>模组 PCB 图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PLACEMENT_V1.0.0.pdf">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_PLACEMENT_V1.0.0.pdf</a></td><td>模组贴片坐标图</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1-BOM-V1.0.0.xlsx">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1-BOM-V1.0.0.xlsx</a></td><td>模组 BOM</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SMTCAD_V1.0.0.xls">SF32LB52-MOD-1-V1.0.0/SF32LB52-MOD-1_SMTCAD_V1.0.0.xls</a></td><td>模组 SMT 坐标/制造资料</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
+            <tr><td><a href="../../common/doc/SF32LB52-MOD-1-V1.0.0/SF32-LB52X-MOD-1_V1.0.0_制版说明.docx">SF32LB52-MOD-1-V1.0.0/SF32-LB52X-MOD-1_V1.0.0_制版说明.docx</a></td><td>模组制版说明</td><td>SF32LB52-MOD-1 V1.0.0 模组资料。</td></tr>
           </tbody>
         </table>
       </div>
