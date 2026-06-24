@@ -55,7 +55,8 @@ SF32LB52-HSPI provides the following hardware components:
   - SK6812MINI-HS RGB LED.
   - LSM6DS3TR-C six-axis sensor, MMC5603NJ geomagnetic sensor, and
     LTR-303ALS-01 ambient light sensor.
-  - SY6103 linear charger and related power path components.
+  - AW32001 linear charger (I2C2, address 0x49) and related power path
+    components.
 
 Hardware Reference Artifacts
 ============================
@@ -63,7 +64,15 @@ Hardware Reference Artifacts
 The local board documentation directory includes downloaded open hardware
 artifacts and a consolidated pin/resource reference page:
 
-- :download:`Pin and board resource reference <pin-resources.html>`
+- :download:`Board hardware reference <board-hardware-reference.html>`
+  (30P/22P connectors, 68-pin module map, board resources, and the
+  netlist x SDK x DTS cross-validation summary)
+- :download:`Huangshan Pi reference notes <SF32LB52-黄山派-资料.md>`
+  (synced from the SiFli SDK; section 6 is the full per-pin
+  netlist x SDK x Zephyr-DTS cross-check)
+- :download:`On-board sensors and device reference <sensors.html>`
+  (per-device pinout, I2C address, Zephyr compatible / bring-up notes; links the
+  datasheets under ``doc/datasheets/``)
 - :download:`Core board schematic PDF <PDF_立创·黄山派SF32LB52开发板/SCH_黄山派核心板_SCH_V1.2_2026-06-24.pdf>`
 - :download:`LCD board schematic PDF <PDF_立创·黄山派SF32LB52开发板/SCH_黄山派LCD屏幕板_SCH_V1.1_2026-06-24.pdf>`
 - :download:`Core board netlist <Netlist_黄山派核心板_SCH_V1.2_2026-06-24.tel>`

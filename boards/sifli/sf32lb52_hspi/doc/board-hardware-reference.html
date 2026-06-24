@@ -397,8 +397,8 @@
 <body>
   <header>
     <div class="wrap">
-      <h1>SF32LB52-HSPI 引脚与板级资源速查</h1>
-      <p>面向 Zephyr 板级移植的硬件资料页，整理黄山派 SF32LB52 开发板的 30P 排针、22P QSPI 屏幕 FPC、板载资源、当前设备树配置和需要继续核对的引脚差异。</p>
+      <h1>SF32LB52-黄山派 板级硬件参考（引脚 / 传感器 / DTS 交叉验证）</h1>
+      <p>面向 Zephyr 板级移植的硬件参考页。整理黄山派 SF32LB52(官方板名 <code>sf32lb52-lchspi-ulp</code>)的 30P 排针、22P QSPI 屏幕 FPC、68P 模组管脚与板载资源，并以<strong>本地网表 × 官方 SDK × Zephyr DTS</strong> 三方交叉验证引脚分配。传感器细节见 <a href="./sensors.html">sensors.html</a>，完整文字资料(含三方核对表)见 <a href="./SF32LB52-黄山派-资料.md">SF32LB52-黄山派-资料.md</a>。</p>
       <div class="meta-row">
         <div class="meta">
           <strong>板卡</strong>
@@ -454,7 +454,72 @@
           <a href="../sf32lb52_hspi_defconfig">sf32lb52_hspi_defconfig</a>
           <p class="small">用于记录当前工程已经启用的外设和待修正项。</p>
         </li>
+        <li>
+          <strong>官方 SiFli SDK（最权威的板级配置）</strong>
+          <span>板 <code>sf32lb52-lchspi-ulp</code> @ <code>E:\OpenSiFli\SiFli-SDK</code></span>
+          <p class="small">引脚/上电序列见 <code>customer/boards/sf32lb52-lchspi-ulp_base/</code>(bsp_pinmux.c / bsp_power.c / bsp_lcd_tp.c);启用的驱动见 <code>.../sf32lb52-lchspi-ulp/hcpu/board.conf</code>。</p>
+        </li>
+        <li>
+          <strong>同步的黄山派资料(含三方交叉验证)</strong>
+          <a href="./SF32LB52-黄山派-资料.md">SF32LB52-黄山派-资料.md</a>
+          <p class="small">第 6 节为"本地网表 × SDK × Zephyr DTS"逐脚核对表;本页"三方交叉验证结论"是其摘要。</p>
+        </li>
       </ul>
+    </section>
+
+    <section>
+      <h2>三方交叉验证结论（网表 × SDK × DTS，权威)</h2>
+      <p>引脚分配以 <strong>本地网表</strong>(硬件连线)为最终依据,并与<strong>官方 SDK</strong> 源码一致;本地网表逐脚确认了 SDK 的全部结论。下面是与当前 Zephyr DTS 的差异摘要,逐脚总表见 <a href="./SF32LB52-黄山派-资料.md">资料 md 第 6 节</a>。</p>
+      <div class="card-grid">
+        <div class="card">
+          <strong>网表+SDK 已确认、DTS 已对</strong>
+          <div class="chip-list">
+            <span class="chip ok">触摸 0x38 / PA33·PA37·PA41·PA09</span>
+            <span class="chip ok">充电 0x49 / i2c2 PA10·PA11</span>
+            <span class="chip ok">传感器 i2c3 PA39·PA40</span>
+            <span class="chip ok">IMU 0x6A·INT PA31</span>
+            <span class="chip ok">磁 0x30 / 光 0x29</span>
+            <span class="chip ok">KEY1 PA34 / LCD/QSPI / UART / 晶振 / SPI1</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>已确认的 DTS bug（待修)</strong>
+          <div class="chip-list">
+            <span class="chip warn">KEY2 PA11 → 应 PA43</span>
+            <span class="chip warn">音频 PA PA10 → 应 PA42</span>
+            <span class="chip warn">LED0 低有效 → 应高有效</span>
+            <span class="chip warn">SPI1 DI 下拉 → 应上拉</span>
+          </div>
+        </div>
+        <div class="card">
+          <strong>网表/SDK 有、DTS 缺</strong>
+          <div class="chip-list">
+            <span class="chip">传感器电源 PA_38(VSYS,最先)+ PA_26(VCC3V3)</span>
+            <span class="chip">背光 PWM PA_01(GPTIM1_CH4)</span>
+            <span class="chip">充电 INT PA_44</span>
+            <span class="chip">马达 PA_20 / SD_DET PA_27 / USB PA_35·36</span>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table>
+          <thead>
+            <tr><th>项</th><th>DTS 现状(错)</th><th>网表 / SDK 权威</th><th>修法</th><th>级别</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>KEY2</td><td><code>&amp;gpioa_00_31 11</code>(PA_11)</td><td>网表 <code>PA_43_KEY2</code>→SW2;SDK <code>KEY2_PIN=43</code>。PA_11 实为充电 I2C2_SDA</td><td>改 <code>&amp;gpioa_32_44 11</code>(=PA_43)</td><td><span class="tag bad">高</span></td></tr>
+            <tr><td>音频 PA 使能</td><td><code>pa-power-gpios=&amp;gpioa_00_31 10</code>(PA_10)</td><td>网表 <code>PA_42</code>→U6(NS4150B);SDK <code>AW8155_GPIO_PIN=42</code>。PA_10 实为充电 I2C2_SCL</td><td>改 <code>&amp;gpioa_32_44 10</code>(=PA_42)</td><td><span class="tag bad">高</span></td></tr>
+            <tr><td>LED0 极性</td><td><code>GPIO_ACTIVE_LOW</code></td><td>SDK <code>LED1_ACTIVE_HIGH</code>;PA_26 同时是 VCC_3V3 轨使能</td><td>改 <code>GPIO_ACTIVE_HIGH</code></td><td><span class="tag warn">中</span></td></tr>
+            <tr><td>SPI1 DI 偏置</td><td><code>bias-pull-down</code></td><td>SDK PA_25 <code>PIN_PULLUP</code></td><td>改 <code>bias-pull-up</code></td><td><span class="tag">低</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        修好 KEY2→PA_43、音频→PA_42 后,<code>PA_10/PA_11</code> 即空出,<code>i2c2</code> 充电总线可解除 <code>disabled</code>。传感器电源需按 <strong>PA_38 → PA_26 → PA_30</strong> 顺序上电并延时 500&nbsp;µs(<code>bsp_power.c</code>);DTS 目前仅建了 PA_30。
+      </div>
+      <div class="callout warn">
+        交叉验证工具:本地网表解析 + 官方 SDK 源码。<code>codex</code> CLI 本机未安装(<code>npm i -g @openai/codex</code> 后可加入二次核对)。
+      </div>
     </section>
 
     <section>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HSPI-SF32LB52 板载传感器与器件文档</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fb; --paper: #ffffff; --ink: #1e293b; --muted: #64748b;
+      --line: #d9e2ef; --line-strong: #b7c5d7; --brand: #166c8c;
+      --soft: #e9f6f8; --soft-2: #eef8f1; --soft-warn: #fff7e8; --code: #f3f6f9;
+      --shadow: 0 12px 32px rgba(26, 45, 71, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif; line-height: 1.55; }
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header { background: #102a43; color: #f8fafc; padding: 34px 24px 28px; border-bottom: 4px solid #38a3a5; }
+    header .wrap, main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 40px); line-height: 1.15; }
+    h2 { margin: 0 0 14px; font-size: 23px; }
+    h3 { margin: 0 0 10px; font-size: 18px; }
+    p { margin: 0 0 12px; }
+    header p { max-width: 900px; margin: 0; color: #d9e7f3; font-size: 16px; }
+    main { padding: 24px 0 48px; }
+    section { background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+      box-shadow: var(--shadow); padding: 22px; margin-bottom: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; vertical-align: top; text-align: left; }
+    th { background: #eaf2f7; color: #17324d; font-weight: 700; }
+    tbody tr:nth-child(even) { background: #fbfdff; }
+    code { padding: 2px 5px; border-radius: 5px; background: var(--code);
+      font-family: "Cascadia Code", Consolas, monospace; font-size: 0.92em; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .table-wrap table { border: 0; min-width: 720px; }
+    .device { border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 14px; background: #fbfcfe; }
+    .device h3 { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+    .device h3 .pn { color: var(--muted); font-weight: 400; font-size: 14px; }
+    .kv { display: grid; grid-template-columns: 130px 1fr; gap: 4px 12px; margin: 8px 0; font-size: 14px; }
+    .kv dt { color: var(--muted); }
+    .kv dd { margin: 0; }
+    .tag { display: inline-block; padding: 2px 7px; border-radius: 4px; background: #eef2f7; color: #334155; font-size: 12px; white-space: nowrap; }
+    .tag.ok { background: #dff4e7; color: #16643b; }
+    .tag.warn { background: #fff1cf; color: #805000; }
+    .tag.off { background: #ececf3; color: #50506a; }
+    .callout { border-radius: 8px; padding: 13px 14px; margin: 12px 0 0; border: 1px solid #aad6dd; background: var(--soft); }
+    .callout.warn { border-color: #f0bf72; background: var(--soft-warn); color: #613800; }
+    .small { color: var(--muted); font-size: 13px; }
+    pre { background: #0f1b2d; color: #e6eef7; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    @media (max-width: 760px) { .kv { grid-template-columns: 1fr; } section { padding: 18px; } }
+    @media print { body { background:#fff; } header { background:#fff; color:#111827; border-bottom: 2px solid #111827; } header p { color:#374151; } section { box-shadow:none; break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>HSPI-SF32LB52 板载传感器与器件文档</h1>
+      <p>立创·黄山派(<code>sf32lb52_hspi</code>)板载传感器及相关 I2C/外设器件的资料汇总:引脚、I2C 地址、Zephyr 驱动 compatible、设备树节点状态、关键规格与本地 datasheet。
+      引脚以 V1.2 黄山派网表(<code>Netlist_黄山派核心板</code>)+ BOM 为权威来源。所有节点当前在设备树中均为 <code>disabled</code>,后续逐个启用。</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>状态说明</h2>
+      <p class="small">
+        <span class="tag off">disabled</span> 设备树中已建节点但未启用(占位,待逐个 bring-up)
+        <span class="tag ok">驱动可用</span> Zephyr 有对应 upstream 驱动
+        <span class="tag warn">占位 compatible</span> 暂无 upstream 驱动,compatible 为占位
+      </p>
+      <div class="callout">
+        当前 <code>sf32lb52_hspi.dts</code> 把所有传感器/外设节点设为 <code>disabled</code>,且总线 <code>i2c2</code> 也未启用。
+        启用某个器件时:把对应节点(必要时还有所在 I2C 总线)改为 <code>status = "okay"</code>,并在应用侧打开对应 <code>CONFIG_*</code>(见下方"启用步骤")。
+      </div>
+    </section>
+
+    <section>
+      <h2>I2C 总线拓扑(黄山派网表)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>总线</th><th>SDA</th><th>SCL</th><th>挂载器件</th><th>设备树</th></tr></thead>
+          <tbody>
+            <tr><td><code>i2c1</code>(触摸)</td><td><code>PA_33</code></td><td><code>PA_37</code></td><td>FT6146 触摸(0x38)</td><td><span class="tag ok">总线 okay</span> / 器件 disabled</td></tr>
+            <tr><td><code>i2c2</code>(充电)</td><td><code>PA_11</code></td><td><code>PA_10</code></td><td>AW32001 充电(0x49,网表+SDK 确认)</td><td><span class="tag off">总线 disabled</span></td></tr>
+            <tr><td><code>i2c3</code>(传感器)</td><td><code>PA_39</code></td><td><code>PA_40</code></td><td>LSM6DS3TR-C(0x6A)、MMC5603NJ(0x30)、LTR-303ALS-01(0x29)</td><td><span class="tag ok">总线 okay</span> / 器件 disabled</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        传感器供电轨 <code>GS_3V3</code> 由 <code>PA_30</code>(高有效,经 ETA5055 负载开关)使能,设备树中建模为 <code>regulator-fixed</code>(<code>regulator-boot-on</code>),需 <code>CONFIG_REGULATOR</code> 才会在 boot 时拉高。
+        启用任一传感器前请确保该轨上电。
+      </div>
+    </section>
+
+    <section>
+      <h2>传感器(i2c3)</h2>
+
+      <div class="device">
+        <h3>LSM6DS3TR-C <span class="tag ok">驱动可用</span> <span class="tag off">disabled</span> <span class="pn">六轴惯性单元 · U13 · ST</span></h3>
+        <dl class="kv">
+          <dt>功能</dt><dd>3D 加速度 + 3D 陀螺仪(iNEMO)。量程 加速度 ±2/±4/±8/±16 g,角速度 ±125/±250/±500/±1000/±2000 dps。</dd>
+          <dt>I2C 地址</dt><dd><code>0x6A</code>(SA0 接地;SA0 拉高则 0x6B)。WHO_AM_I = <code>0x6A</code>。</dd>
+          <dt>引脚</dt><dd>SDA <code>PA_39</code> / SCL <code>PA_40</code>;中断 INT1 <code>PA_31</code>(高有效)。</dd>
+          <dt>Zephyr</dt><dd>compatible <code>st,lsm6dsl</code>(LSM6DS3TR-C 与 LSM6DSL 寄存器兼容、WHO_AM_I 同为 0x6A)。驱动 <code>CONFIG_LSM6DSL</code>,触发 <code>CONFIG_LSM6DSL_TRIGGER</code>。</dd>
+          <dt>节点</dt><dd><code>lsm6dsl@6a</code></dd>
+          <dt>Datasheet</dt><dd><a href="./datasheets/LSM6DS3TR-C_datasheet_ST.pdf">LSM6DS3TR-C_datasheet_ST.pdf</a>(ST)</dd>
+        </dl>
+      </div>
+
+      <div class="device">
+        <h3>MMC5603NJ <span class="tag ok">驱动可用</span> <span class="tag off">disabled</span> <span class="pn">三轴地磁(磁力计) · U14 · MEMSIC</span></h3>
+        <dl class="kv">
+          <dt>功能</dt><dd>单片三轴 AMR 磁传感器。量程 ±30 Gauss,20-bit,噪声 ~2 mG,航向精度 ~1°。支持 I2C 快速模式 / I3C。</dd>
+          <dt>I2C 地址</dt><dd><code>0x30</code>(固定)。</dd>
+          <dt>引脚</dt><dd>SDA <code>PA_39</code> / SCL <code>PA_40</code>(无中断脚引出)。</dd>
+          <dt>Zephyr</dt><dd>compatible <code>memsic,mmc56x3</code>(覆盖 MMC5603 系列)。驱动 <code>CONFIG_MMC56X3</code>。</dd>
+          <dt>节点</dt><dd><code>mmc56x3@30</code></dd>
+          <dt>Datasheet</dt><dd><a href="./datasheets/MMC5603NJ_datasheet_MEMSIC.pdf">MMC5603NJ_datasheet_MEMSIC.pdf</a>(MEMSIC Rev.B)</dd>
+        </dl>
+      </div>
+
+      <div class="device">
+        <h3>LTR-303ALS-01 <span class="tag warn">占位 compatible</span> <span class="tag off">disabled</span> <span class="pn">环境光传感器 · U16 · Lite-On</span></h3>
+        <dl class="kv">
+          <dt>功能</dt><dd>数字环境光(ALS)。检测范围 0.01–64k lux,16-bit ADC,6 档增益(1/2/4/8/48/96×),可设积分/测量时间。</dd>
+          <dt>I2C 地址</dt><dd><code>0x29</code>(固定)。</dd>
+          <dt>引脚</dt><dd>SDA <code>PA_39</code> / SCL <code>PA_40</code>。</dd>
+          <dt>Zephyr</dt><dd><strong>无专用 upstream 驱动</strong>。<code>liteon,ltr329</code> 寄存器相近但<em>未经验证</em>,当前用作占位 compatible,节点 <code>disabled</code>。后续需确认或自写驱动。</dd>
+          <dt>节点</dt><dd><code>ltr303@29</code></dd>
+          <dt>Datasheet</dt><dd><a href="./datasheets/LTR-303ALS-01_datasheet_LiteOn.pdf">LTR-303ALS-01_datasheet_LiteOn.pdf</a>(Lite-On v1.1)</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section>
+      <h2>其他已补充器件(占位 / disabled)</h2>
+
+      <div class="device">
+        <h3>FT6146 <span class="tag ok">驱动可用</span> <span class="tag off">disabled</span> <span class="pn">电容触摸控制器 · LCD FPC · FocalTech</span></h3>
+        <dl class="kv">
+          <dt>功能</dt><dd>I2C 自容式电容触摸控制器,随屏幕模组板载(非核心板 BOM)。</dd>
+          <dt>I2C 地址</dt><dd><code>0x38</code>(FocalTech 系列默认)。</dd>
+          <dt>引脚</dt><dd>SDA <code>PA_33</code> / SCL <code>PA_37</code>(i2c1);INT <code>PA_41</code>、RST <code>PA_09</code>(均低有效)。</dd>
+          <dt>Zephyr</dt><dd>compatible <code>focaltech,ft6146</code>(有 upstream input 驱动 <code>CONFIG_INPUT_FT6146</code>)。</dd>
+          <dt>节点</dt><dd><code>ft6146@38</code></dd>
+          <dt>Datasheet</dt><dd>FT6146 精确版本未公开;可参考 FocalTech FT6x06/FT6x36 系列手册核对寄存器。</dd>
+        </dl>
+      </div>
+
+      <div class="device">
+        <h3>AW32001(E) <span class="tag warn">占位 compatible</span> <span class="tag off">disabled</span> <span class="pn">线性充电 IC · U3 · Awinic</span></h3>
+        <dl class="kv">
+          <dt>功能</dt><dd>Li-ion/Li-Po 线性充电,I2C 可编程充电参数,输入 OVP 至 28V,Vchg 精度 ±0.5%。</dd>
+          <dt>I2C 地址</dt><dd><code>0x49</code>(占位,<strong>需按 datasheet 复核</strong>)。总线 <code>i2c2</code>:SDA <code>PA_11</code> / SCL <code>PA_10</code>。</dd>
+          <dt>冲突提醒</dt><dd>SCL <code>PA_10</code> 同时是音频功放使能;SDA <code>PA_11</code> 当前被 <code>key2</code> 占用。启用充电前需先解决这两处复用。</dd>
+          <dt>Zephyr</dt><dd>无 upstream 驱动,compatible <code>awinic,aw32001</code> 为占位。</dd>
+          <dt>节点</dt><dd><code>charger@49</code>(<code>i2c2</code> 总线整体 disabled)</dd>
+          <dt>Datasheet</dt><dd><a href="./datasheets/AW32001E_datasheet_Awinic.pdf">AW32001E_datasheet_Awinic.pdf</a>(Awinic V1.2)</dd>
+        </dl>
+      </div>
+
+      <div class="device">
+        <h3>WS2812B-2020 <span class="tag ok">驱动可用</span> <span class="tag off">disabled</span> <span class="pn">可寻址 RGB LED · LED3 · Worldsemi</span></h3>
+        <dl class="kv">
+          <dt>功能</dt><dd>单线串行可寻址 RGB LED,800 kbps,GRB 顺序,每色 256 级。板载 1 颗。</dd>
+          <dt>引脚</dt><dd>数据 <code>PA_32</code>(单 GPIO 位带驱动)。</dd>
+          <dt>Zephyr</dt><dd>compatible <code>worldsemi,ws2812-gpio</code>(<code>CONFIG_WS2812_STRIP</code> + GPIO 位带)。<span class="small">注意:GPIO 位带对时序敏感,<code>reset-delay</code> 等需在 bring-up 时实测调整。</span></dd>
+          <dt>节点</dt><dd><code>led-strip</code>(<code>led_strip</code> label)</dd>
+          <dt>Datasheet</dt><dd><a href="./datasheets/WS2812B-2020_datasheet_Worldsemi.pdf">WS2812B-2020_datasheet_Worldsemi.pdf</a>(Worldsemi,WS2812B 系列)</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section>
+      <h2>启用步骤(逐个 bring-up)</h2>
+      <p>以加速度计为例,启用某器件的通用流程:</p>
+      <pre><code># 1) 设备树:把器件节点(必要时连同所在 I2C 总线)改为 okay
+#    例如在应用 overlay 里:
+&amp;i2c3   { status = "okay"; };          # 传感器总线(本就 okay)
+&amp;lsm6dsl { status = "okay"; };          # 加速度计节点
+
+# 2) 应用 prj.conf:打开子系统与驱动
+CONFIG_I2C=y
+CONFIG_REGULATOR=y          # 让 GS_3V3 传感器电源轨在 boot 时上电(PA_30)
+CONFIG_SENSOR=y
+CONFIG_LSM6DSL=y
+# CONFIG_LSM6DSL_TRIGGER_GLOBAL_THREAD=y   # 需要 INT1(PA_31)中断时
+
+# 充电器(i2c2)启用前还需先解决 PA_10(音频PA使能)/ PA_11(key2)复用</code></pre>
+      <div class="callout">
+        总线 <code>i2c2</code> 默认 <code>disabled</code>;其 pinctrl(<code>PA_10/PA_11</code>)在 disabled 状态下不会下发,因此与音频 <code>PA_10</code>、按键 <code>PA_11</code> 不产生运行期冲突 —— 但真正启用充电器前必须先在硬件层面/设备树层面理清这两个复用。
+      </div>
+    </section>
+
+    <section>
+      <h2>本地 datasheet 清单</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>器件</th><th>文件</th><th>来源</th></tr></thead>
+          <tbody>
+            <tr><td>LSM6DS3TR-C(IMU)</td><td><a href="./datasheets/LSM6DS3TR-C_datasheet_ST.pdf">LSM6DS3TR-C_datasheet_ST.pdf</a></td><td>STMicroelectronics</td></tr>
+            <tr><td>MMC5603NJ(磁力计)</td><td><a href="./datasheets/MMC5603NJ_datasheet_MEMSIC.pdf">MMC5603NJ_datasheet_MEMSIC.pdf</a></td><td>MEMSIC</td></tr>
+            <tr><td>LTR-303ALS-01(光照)</td><td><a href="./datasheets/LTR-303ALS-01_datasheet_LiteOn.pdf">LTR-303ALS-01_datasheet_LiteOn.pdf</a></td><td>Lite-On</td></tr>
+            <tr><td>AW32001(E)(充电)</td><td><a href="./datasheets/AW32001E_datasheet_Awinic.pdf">AW32001E_datasheet_Awinic.pdf</a></td><td>Awinic</td></tr>
+            <tr><td>WS2812B(RGB LED)</td><td><a href="./datasheets/WS2812B-2020_datasheet_Worldsemi.pdf">WS2812B-2020_datasheet_Worldsemi.pdf</a></td><td>Worldsemi</td></tr>
+            <tr><td>FT6146(触摸)</td><td class="small">精确版本未公开,参考 FocalTech FT6x06/FT6x36 系列</td><td>FocalTech</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="foot small">引脚来源:<a href="./board-hardware-reference.html">board-hardware-reference.html</a> · 黄山派核心板/屏幕板网表 · <a href="./SF32LB52-黄山派-资料.md">SF32LB52-黄山派-资料.md</a>。芯片/模组规格书见 <code>boards/sifli/common/doc</code>。</p>
+    </section>
+  </main>
+</body>
+</html>
