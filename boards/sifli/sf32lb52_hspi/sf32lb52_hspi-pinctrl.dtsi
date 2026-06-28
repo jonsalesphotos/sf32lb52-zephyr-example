@@ -60,6 +60,13 @@
 		};
 	};
 
+	/* Vibrator control: PA_20_VIB_PWM -> GPTIM2 CH1. */
+	vib_pwm_default: vib_pwm_default {
+		group1 {
+			pinmux = <PA20_GPTIM2_CH1>;
+		};
+	};
+
 	lcdc_qspi_default: lcdc_qspi_default {
 		group1 {
 			pinmux = <PA02_LCDC1_SPI_TE>,

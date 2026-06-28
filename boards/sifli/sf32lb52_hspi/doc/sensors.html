@@ -59,7 +59,7 @@
     <div class="wrap">
       <h1>SF32LB52-HSPI 板载传感器与器件文档</h1>
       <p>立创·黄山派(<code>sf32lb52_hspi</code>)板载传感器及相关 I2C/外设器件的资料汇总:引脚、I2C 地址、Zephyr 驱动 compatible、设备树节点状态、关键规格与本地 datasheet。
-      引脚以 V1.2 黄山派网表(<code>Netlist_黄山派核心板</code>)+ BOM 为权威来源。所有节点当前在设备树中均为 <code>disabled</code>,后续逐个启用。</p>
+      引脚以 V1.2 黄山派网表(<code>Netlist_黄山派核心板</code>)+ BOM 为权威来源。当前 DTS 已按网表修正 I2C/KEY/Audio PA 关键引脚,多数器件子节点仍保持 <code>disabled</code>,后续逐个启用。</p>
     </div>
   </header>
 
@@ -72,8 +72,8 @@
         <span class="tag warn">占位 compatible</span> 暂无 upstream 驱动,compatible 为占位
       </p>
       <div class="callout">
-        当前 <code>sf32lb52_hspi.dts</code> 把所有传感器/外设节点设为 <code>disabled</code>,且总线 <code>i2c2</code> 也未启用。
-        启用某个器件时:把对应节点(必要时还有所在 I2C 总线)改为 <code>status = "okay"</code>,并在应用侧打开对应 <code>CONFIG_*</code>(见下方"启用步骤")。
+        当前 <code>sf32lb52_hspi.dts</code> 已启用 <code>i2c1</code>、<code>i2c2</code>、<code>i2c3</code> 总线,并为 FT6146、AW32001、LSM6DSL/MMC56x3/LTR303、WS2812B 建了子节点。
+        这些器件子节点默认 <code>disabled</code>;启用某个器件时把对应节点改为 <code>status = "okay"</code>,并在应用侧打开对应 <code>CONFIG_*</code>(见下方"启用步骤")。
       </div>
     </section>
 
@@ -84,14 +84,14 @@
           <thead><tr><th>总线</th><th>SDA</th><th>SCL</th><th>挂载器件</th><th>设备树</th></tr></thead>
           <tbody>
             <tr><td><code>i2c1</code>(触摸)</td><td><code>PA_33</code></td><td><code>PA_37</code></td><td>FT6146 触摸(0x38)</td><td><span class="tag ok">总线 okay</span> / 器件 disabled</td></tr>
-            <tr><td><code>i2c2</code>(充电)</td><td><code>PA_11</code></td><td><code>PA_10</code></td><td>AW32001 充电(0x49,网表+SDK 确认)</td><td><span class="tag off">总线 disabled</span></td></tr>
+            <tr><td><code>i2c2</code>(充电)</td><td><code>PA_11</code></td><td><code>PA_10</code></td><td>AW32001 充电(0x49,网表+SDK 确认)</td><td><span class="tag ok">总线 okay</span> / 器件 disabled</td></tr>
             <tr><td><code>i2c3</code>(传感器)</td><td><code>PA_39</code></td><td><code>PA_40</code></td><td>LSM6DS3TR-C(0x6A)、MMC5603NJ(0x30)、LTR-303ALS-01(0x29)</td><td><span class="tag ok">总线 okay</span> / 器件 disabled</td></tr>
           </tbody>
         </table>
       </div>
       <div class="callout warn">
-        传感器供电轨 <code>GS_3V3</code> 由 <code>PA_30</code>(高有效,经 ETA5055 负载开关)使能,设备树中建模为 <code>regulator-fixed</code>(<code>regulator-boot-on</code>),需 <code>CONFIG_REGULATOR</code> 才会在 boot 时拉高。
-        启用任一传感器前请确保该轨上电。
+        传感器/外设上电顺序来自 SDK 和网表:<code>PA_38</code>(VSYS) → <code>PA_26</code>(VCC_3V3) → <code>PA_30</code>(GS_3V3),再延时约 500 us。
+        DTS 中 <code>vsys_en</code> 和 <code>vcc_3v3</code> 已设为 <code>regulator-always-on</code> 自动开启；<code>gs_3v3</code> 使用 <code>regulator-boot-off</code> <strong>默认关闭</strong>，传感器 bring-up 时需应用层调用 <code>regulator_enable(DT_NODELABEL(gs_3v3))</code> 开启(需 <code>CONFIG_REGULATOR=y</code>)。
       </div>
     </section>
 
@@ -154,10 +154,10 @@
         <h3>AW32001(E) <span class="tag warn">占位 compatible</span> <span class="tag off">disabled</span> <span class="pn">线性充电 IC · U3 · Awinic</span></h3>
         <dl class="kv">
           <dt>功能</dt><dd>Li-ion/Li-Po 线性充电,I2C 可编程充电参数,输入 OVP 至 28V,Vchg 精度 ±0.5%。</dd>
-          <dt>I2C 地址</dt><dd><code>0x49</code>(占位,<strong>需按 datasheet 复核</strong>)。总线 <code>i2c2</code>:SDA <code>PA_11</code> / SCL <code>PA_10</code>。</dd>
-          <dt>冲突提醒</dt><dd>SCL <code>PA_10</code> 同时是音频功放使能;SDA <code>PA_11</code> 当前被 <code>key2</code> 占用。启用充电前需先解决这两处复用。</dd>
+          <dt>I2C 地址</dt><dd><code>0x49</code>(SDK/当前 DTS 使用)。总线 <code>i2c2</code>:SDA <code>PA_11</code> / SCL <code>PA_10</code>。</dd>
+          <dt>中断</dt><dd>AW32001 <code>CHG_INT</code> 为 U3.B2/Q1/R5 网络,不直接接 MCU GPIO。<code>PA_34</code>(KEY1)经 Q1 MOSFET 反相:PA_34 高→Q1 导通→CHG_INT 低→长按(~秒)触发 charger shipping mode(系统断电)。<code>PA_44</code> 是独立 VBUS_DET 分压检测,不是 INT。</dd>
           <dt>Zephyr</dt><dd>无 upstream 驱动,compatible <code>awinic,aw32001</code> 为占位。</dd>
-          <dt>节点</dt><dd><code>charger@49</code>(<code>i2c2</code> 总线整体 disabled)</dd>
+          <dt>节点</dt><dd><code>charger@49</code>(子节点 disabled, <code>i2c2</code> 总线 okay)</dd>
           <dt>Datasheet</dt><dd><a href="./datasheets/AW32001E_datasheet_Awinic.pdf">AW32001E_datasheet_Awinic.pdf</a>(Awinic V1.2)</dd>
         </dl>
       </div>
@@ -189,9 +189,9 @@ CONFIG_SENSOR=y
 CONFIG_LSM6DSL=y
 # CONFIG_LSM6DSL_TRIGGER_GLOBAL_THREAD=y   # 需要 INT1(PA_31)中断时
 
-# 充电器(i2c2)启用前还需先解决 PA_10(音频PA使能)/ PA_11(key2)复用</code></pre>
+# 充电器(i2c2)总线已为 okay;确认/补齐 AW32001 驱动后启用 charger@49</code></pre>
       <div class="callout">
-        总线 <code>i2c2</code> 默认 <code>disabled</code>;其 pinctrl(<code>PA_10/PA_11</code>)在 disabled 状态下不会下发,因此与音频 <code>PA_10</code>、按键 <code>PA_11</code> 不产生运行期冲突 —— 但真正启用充电器前必须先在硬件层面/设备树层面理清这两个复用。
+        当前 DTS 已把音频 PA 使能放到 <code>PA_42</code>,KEY2 放到 <code>PA_43</code>,因此 <code>PA_10/PA_11</code> 专用于充电 I2C2。充电器仍保持 disabled 的原因是 AW32001 Zephyr 驱动/compatible 仍需 bring-up。
       </div>
     </section>
 

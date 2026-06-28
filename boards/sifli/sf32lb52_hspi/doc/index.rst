@@ -52,7 +52,10 @@ SF32LB52-HSPI provides the following hardware components:
 
 - Board peripherals
 
-  - SK6812MINI-HS RGB LED.
+  - WS2812B-2020 RGB LED on PA32, powered by the internal LDO3
+    ``VDD33_VOUT`` rail.
+  - Vibrator motor control on PA20, powered by the internal LDO3
+    ``VDD33_VOUT`` rail.
   - LSM6DS3TR-C six-axis sensor, MMC5603NJ geomagnetic sensor, and
     LTR-303ALS-01 ambient light sensor.
   - AW32001 linear charger (I2C2, address 0x49) and related power path
@@ -70,6 +73,11 @@ artifacts and a consolidated pin/resource reference page:
 - :download:`Huangshan Pi reference notes <SF32LB52-黄山派-资料.md>`
   (synced from the SiFli SDK; section 6 is the full per-pin
   netlist x SDK x Zephyr-DTS cross-check)
+- :download:`Power tree <power-tree.md>`
+  (VSYS, external switch rails, internal LDO3 ``VDD33_VOUT`` rail, KEY1
+  power-key behavior)
+- :download:`Devicetree reference <dts-reference.md>`
+  (line-by-line board DTS notes, including LDO3, WS2812B, and vibrator PWM)
 - :download:`On-board sensors and device reference <sensors.html>`
   (per-device pinout, I2C address, Zephyr compatible / bring-up notes; links the
   datasheets under ``doc/datasheets/``)

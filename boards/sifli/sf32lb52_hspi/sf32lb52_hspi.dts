@@ -13,6 +13,7 @@
 #include <zephyr/dt-bindings/i2c/i2c.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/led/led.h>
+#include <zephyr/dt-bindings/pwm/pwm.h>
 
 #include "sf32lb52_hspi-pinctrl.dtsi"
 
@@ -43,6 +44,17 @@
 
 		key1: key1 {
 			label = "KEY1";
+			/*
+			 * PA_34 = VBAT via SW1 (active-high when pressed).
+			 *
+			 * HARDWARE SIDE-EFFECT (netlist verified):
+			 * PA_34 also drives Q1 gate → CHG_INT (AW32001 INT pin).
+			 * Pressing KEY1 pulls CHG_INT LOW via Q1. Per AW32001E
+			 * datasheet, INT LOW can toggle shipping mode (disconnect
+			 * battery from system). Short press = normal key; long
+			 * press (~seconds) = hardware power-cycle via charger IC.
+			 * Do NOT drive PA_34 high for extended periods in firmware.
+			 */
 			gpios = <&gpioa_32_44 2 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_1>;
 		};
@@ -57,22 +69,19 @@
 		};
 	};
 
-	leds {
-		compatible = "gpio-leds";
-
-		led0: led0 {
-			label = "LED0";
-			/* PA_26, active high (SDK CONFIG_BSP_LED1_ACTIVE_HIGH=y).
-			 * PA_26 also enables the VSYS->VCC_3V3 rail, so driving this
-			 * LED high additionally powers VCC_3V3 (see the power-rail note).
-			 */
-			gpios = <&gpioa_00_31 26 GPIO_ACTIVE_HIGH>;
-		};
-	};
+	/*
+	 * LED inventory (schematic / netlist verified):
+	 * - LED1: Red 0603 power indicator, hard-wired between VBUS_5V (via R6
+	 *   4.7kΩ) and GND. Always on when USB is plugged — NOT GPIO-controllable.
+	 * - LED3 (WS2812B-2020): RGB smart LED on PA_32, 1-Wire protocol. Modeled
+	 *   as led_strip below (currently disabled).
+	 *
+	 * There is NO GPIO-controlled LED on PA_26. PA_26 drives the VCC_3V3
+	 * load-switch enable (ETA5055V330DS2F U4) — see regulator-vcc3v3 below.
+	 */
 
 	aliases {
 		codec0 = &audcodec;
-		led0 = &led0;
 		sw0 = &key1;
 		sw1 = &key2;
 		rtc = &rtc;
@@ -87,42 +96,120 @@
 	};
 
 	/*
-	 * On-board power-rail enables (all active-high, default-off at reset).
-	 * SDK bsp_power.c brings them up in order: VSYS (PA_38) -> VCC_3V3 (PA_26)
-	 * -> GS_3V3 sensor rail (PA_30), then a ~500us settle delay before the
-	 * sensor / charger I2C is usable. Modeled as regulator-fixed
-	 * (regulator-boot-on needs CONFIG_REGULATOR to switch on at boot).
-	 * NOTE: VCC_3V3 (PA_26) is shared with LED0, so it is not modeled as a
-	 * separate regulator here; drive LED0 / PA_26 high to enable that rail.
+	 * Power tree (schematic / netlist verified, 2026-06-28):
+	 *
+	 *   USB_VBUS_5V ── LP5305AQVF (U17, OVP/OCP) ── VBUS_5V
+	 *                                                    │
+	 *   VBAT_S  ─────────────────────────────────────────┤
+	 *                                                    ▼
+	 *                    AW32001ECSR (U3, charger, I2C2 PA_10/PA_11)
+	 *                    ├─ CHG_INT = U3.B2/Q1.3/R5.1, pulled low via Q1 by PA_34
+	 *                    ├─ PA_44 = VBUS_DET divider, not AW32001 INT
+	 *                    ▼
+	 *                  VSYS_S (VSYS)
+	 *                    │
+	 *       ┌────────────┼────────────────────┐
+	 *       ▼            ▼                    ▼
+	 *   NS4150B      SF32LB52              LP5240HVF
+	 *   (PA_42)       主控                 (U2, PA_38)
+	 *   功放           │                     │
+	 *                  └─ LDO3_3V3 / VDD33_VOUT2
+	 *                     (module pin 17, net VDD33_VOUT)
+	 *                       ├─ R51 0Ω → LED3 WS2812B VDD (data PA_32)
+	 *                       └─ R36 5.1Ω → vibrator supply (PWM PA_20)
+	 *                                        │
+	 *                                        ▼
+	 *                                      VSYS_1
+	 *                                        │
+	 *       ┌────────────────┬───────────────┤
+	 *       ▼                ▼               ▼
+	 *   屏幕 FPC        ETA5055V330DS2F   ETA5055V330DS2F
+	 *   (VSYS_1直供)    (U4, PA_26)       (U15, PA_30)
+	 *                       │                 │
+	 *                       ▼                 ▼
+	 *                   VCC_3V3_S          GS_3V3
+	 *                 (TP/SPI/SD卡)      (传感器总线)
+	 *
+	 * Power-on sequence (SDK bsp_power.c):
+	 *   PA_38 (VSYS_1) → PA_26 (VCC_3V3) → PA_30 (GS_3V3)
+	 *   Followed by ~500 µs settle before sensor/charger I2C is usable.
+	 *
+	 * Regulator strategy:
+	 *   vsys_en  — regulator-always-on (system rail, never off)
+	 *   vcc_3v3  — regulator-always-on (peripheral rail, always on)
+	 *   gs_3v3   — regulator-boot-off  (sensor bus, app-managed)
+	 * All enable GPIOs are active-high, default-off at reset.
+	 * regulator-boot-on requires CONFIG_REGULATOR to auto-enable at boot.
 	 */
 	vsys_en: regulator-vsys {
 		compatible = "regulator-fixed";
 		regulator-name = "vsys-en";
+		/* PA_38 → LP5240HVF (U2) EN. System VSYS_1 rail — never turn off. */
 		enable-gpios = <&gpioa_32_44 6 GPIO_ACTIVE_HIGH>;
 		regulator-boot-on;
+	};
+
+	vcc_3v3: regulator-vcc3v3 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc-3v3";
+		/* PA_26 → ETA5055V330DS2F (U4) EN. Powers VCC_3V3_S rail:
+		 * touch-panel I2C1 pull-ups, SPI1/SD-card VDD, etc.
+		 * regulator-always-on: fundamental peripheral rail, always on.
+		 */
+		enable-gpios = <&gpioa_00_31 26 GPIO_ACTIVE_HIGH>;
+		regulator-always-on;
 	};
 
 	gs_3v3: regulator-gs3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "gs-3v3";
+		/* PA_30 → ETA5055V330DS2F (U15) EN. Powers the sensor bus
+		 * (I2C3: LSM6DS3TR-C, MMC5603NJ, LTR-303ALS-01).
+		 * regulator-boot-off: default off. Application must call
+		 *   regulator_enable(DEVICE_DT_GET(DT_NODELABEL(gs_3v3)));
+		 * then wait ~500 µs before accessing sensors on I2C3.
+		 * Sensor drivers (lsm6dsl/mmc56x3/ltr329) do not have
+		 * built-in vin-supply support, so regulator management is
+		 * explicit at the application level.
+		 */
 		enable-gpios = <&gpioa_00_31 30 GPIO_ACTIVE_HIGH>;
-		regulator-boot-on;
+		regulator-boot-off;
 	};
 
 	/*
-	 * On-board WS2812B RGB LED (LED3) on PA_32. Bit-bang GPIO driver;
-	 * the reset-delay/timing here are placeholders to be tuned on bring-up.
+	 * On-board WS2812B-2020 RGB smart LED (LED3) on PA_32.
+	 * LED3 VDD is VDD33_VOUT from SF32LB52 LDO3_3V3 via R51.
+	 * 1-Wire protocol (NZR), bit-bang GPIO driver.
+	 * Reset-delay / timing are placeholders; tune on bring-up.
 	 * Disabled until brought up.
 	 */
 	led_strip: led-strip {
 		compatible = "worldsemi,ws2812-gpio";
-		in-gpios = <&gpioa_32_44 0 GPIO_ACTIVE_HIGH>;
+		gpios = <&gpioa_32_44 0 GPIO_ACTIVE_HIGH>;
 		chain-length = <1>;
 		color-mapping = <LED_COLOR_ID_GREEN
 				 LED_COLOR_ID_RED
 				 LED_COLOR_ID_BLUE>;
 		reset-delay = <280>;
 		status = "disabled";
+	};
+
+	/*
+	 * Vibrator motor:
+	 *   - supply: VDD33_VOUT from SF32LB52 LDO3_3V3 via R36
+	 *   - control: PA_20_VIB_PWM, routed as GPTIM2 CH1
+	 *
+	 * Keep disabled by default to avoid unintended vibration at boot. Enable
+	 * this node together with &gptim2 / &gptim2_pwm during vibrator bring-up.
+	 */
+	pwm_vibrator: pwm-vibrator {
+		compatible = "pwm-leds";
+		status = "disabled";
+
+		vibrator: vibrator {
+			label = "VIBRATOR";
+			pwms = <&gptim2_pwm 0 PWM_MSEC(5) PWM_POLARITY_NORMAL>;
+		};
 	};
 };
 
@@ -175,6 +262,17 @@
 };
 
 &ldo1_1v8 {
+	regulator-boot-on;
+	status = "okay";
+};
+
+&ldo3_3v3 {
+	/*
+	 * SF32LB52 internal 3.3 V LDO output:
+	 *   LDO3_3V3 / VDD33_VOUT2 (module pin 17) -> board net VDD33_VOUT.
+	 * It powers LED3 (WS2812B) and the vibrator motor supply path.
+	 */
+	regulator-name = "vdd33-vout";
 	regulator-boot-on;
 	status = "okay";
 };
@@ -251,6 +349,18 @@
 	status = "okay";
 };
 
+&gptim2 {
+	/*
+	 * PA_20_VIB_PWM = GPTIM2 CH1. The PWM controller is described here but
+	 * remains disabled until the vibrator function is intentionally enabled.
+	 */
+	gptim2_pwm: pwm {
+		pinctrl-0 = <&vib_pwm_default>;
+		pinctrl-names = "default";
+		status = "disabled";
+	};
+};
+
 &i2c1 {
 	status = "okay";
 	pinctrl-0 = <&i2c1_default>;
@@ -320,11 +430,13 @@
 	charger: charger@49 {
 		/* AW32001 (U3) linear charger, address 0x49 (netlist + SDK confirmed).
 		 * Placeholder compatible - no upstream Zephyr driver yet.
-		 * VBUS / charger interrupt = PA_44 (active high on this board).
+		 * AW32001 INT is net CHG_INT (U3.B2/Q1.3/R5.1) and is not directly
+		 * connected to an MCU GPIO. PA_34 can pull CHG_INT low through Q1;
+		 * PA_44 is a separate VBUS_DET divider and must not be modeled as
+		 * charger int-gpios.
 		 */
 		compatible = "awinic,aw32001";
 		reg = <0x49>;
-		int-gpios = <&gpioa_32_44 12 GPIO_ACTIVE_HIGH>;
 		status = "disabled";
 	};
 };

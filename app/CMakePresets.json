@@ -1,0 +1,22 @@
+{
+    "version": 2,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20
+    },
+    "configurePresets": [
+        {
+            "name": "build",
+            "displayName": "Build for sf32lb52_hspi",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "NCS_TOOLCHAIN_VERSION": "NONE",
+                "BOARD": "sf32lb52_hspi/sf32lb525uc6",
+                "DEBUG_THREAD_INFO": true,
+                "CONFIG_DEBUG_OPTIMIZATIONS": true,
+                "CONFIG_DEBUG_THREAD_INFO": true
+            }
+        }
+    ]
+}
