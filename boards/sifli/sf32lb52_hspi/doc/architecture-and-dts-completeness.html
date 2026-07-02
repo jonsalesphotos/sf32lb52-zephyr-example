@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF32LB52-HSPI(黄山派)Zephyr 工程架构与 DTS 完整性研究报告</title>
+<style>
+  :root {
+    --fg: #24292f; --bg: #ffffff; --muted: #57606a; --border: #d0d7de;
+    --accent: #0969da; --ok: #1a7f37; --warn: #9a6700; --bad: #cf222e;
+    --code-bg: #f6f8fa; --th-bg: #f6f8fa; --note-bg: #ddf4ff; --warn-bg: #fff8c5;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", -apple-system, sans-serif;
+         color: var(--fg); background: var(--bg); margin: 0; line-height: 1.65; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 1.7em; border-bottom: 2px solid var(--border); padding-bottom: .4em; }
+  h2 { font-size: 1.35em; border-bottom: 1px solid var(--border); padding-bottom: .3em; margin-top: 2em; }
+  h3 { font-size: 1.1em; margin-top: 1.6em; }
+  h4 { font-size: 1em; margin-top: 1.4em; color: var(--muted); }
+  code, pre { font-family: Consolas, "Courier New", monospace; font-size: .92em; }
+  code { background: var(--code-bg); padding: .15em .4em; border-radius: 4px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+        padding: 14px; overflow-x: auto; line-height: 1.45; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .94em; }
+  th, td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--th-bg); }
+  tr:nth-child(even) td { background: #fbfcfd; }
+  .badge { display: inline-block; padding: 1px 9px; border-radius: 12px; font-size: .85em;
+           font-weight: 600; white-space: nowrap; }
+  .b-ok   { background: #dafbe1; color: var(--ok); }
+  .b-warn { background: var(--warn-bg); color: var(--warn); }
+  .b-bad  { background: #ffebe9; color: var(--bad); }
+  .note { background: var(--note-bg); border-left: 4px solid var(--accent);
+          padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 1em 0; }
+  .caution { background: var(--warn-bg); border-left: 4px solid var(--warn);
+             padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 1em 0; }
+  .meta { color: var(--muted); font-size: .9em; }
+  .toc { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+         padding: 14px 24px; margin: 1.4em 0; }
+  .toc a { text-decoration: none; color: var(--accent); }
+  .toc a:hover { text-decoration: underline; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>SF32LB52-HSPI(黄山派)Zephyr 工程架构与 DTS 完整性研究报告</h1>
+<p class="meta">
+生成日期:2026-07-02 ·
+工作区:<code>E:\1\sf32lb52-zephyr-example</code> ·
+参考:<code>E:\1\OpenSiFli\SiFli-SDK</code>(<code>customer/boards/sf32lb52-lchspi-ulp*</code>)·
+配套 Markdown 版:<a href="./architecture-and-dts-completeness.md">architecture-and-dts-completeness.md</a>
+</p>
+
+<div class="toc">
+<strong>目录</strong>
+<ol>
+  <li><a href="#tldr">快速结论(TL;DR)</a></li>
+  <li><a href="#arch">工程整体架构</a></li>
+  <li><a href="#audit">HSPI 板 DTS 完整性审计(对照 OpenSiFli SDK)</a></li>
+  <li><a href="#learn">学习路径建议</a></li>
+  <li><a href="#refs">相关文档索引</a></li>
+</ol>
+</div>
+
+<h2 id="tldr">0. 快速结论(TL;DR)</h2>
+<ol>
+  <li><strong>工程架构</strong>:标准 Zephyr <code>west</code> workspace,以 <code>application/</code> 为 manifest 仓库,拉取 OpenSiFli 的 <strong>zephyr-downstream</strong> fork 与 <strong>hal_sifli</strong> 模块。黄山派板级 <code>sf32lb52_hspi</code> 放在应用仓库内(out-of-tree board),继承自 fork 内的 <code>sf32lb52_devkit_lcd</code>。</li>
+  <li><strong>DTS 器件覆盖度</strong>:板上<strong>所有主要器件均已出现在 DTS 中</strong>——屏幕、触摸、三颗传感器、充电 IC、三路板级稳压器 + 两路片内 LDO、按键、RGB 灯、振动马达、音频功放使能全部有节点;其中屏幕/电源/音频/存储/蓝牙/控制台等 <span class="badge b-ok">13 类已启用</span>,触摸/传感器/充电/RGB/马达 <span class="badge b-warn">7 个节点 disabled 占位</span>(策略合理,待 bring-up)。</li>
+  <li><strong>缺口状态(2026-07-02 已补全,见 §2.6)</strong>:<span class="badge b-ok">电池 GPADC 通道 7 ✔</span> <span class="badge b-ok">TF 卡节点 + PA_27 ✔</span> <span class="badge b-ok">PA_44 VBUS 检测 ✔</span> <span class="badge b-ok">PA_01 网表证实 NC(无需建模)</span>;剩余:<span class="badge b-bad">USB(SoC 级)</span> <span class="badge b-bad">SDIO(SoC 级)</span> <span class="badge b-warn">AW32001 驱动(绑定已补)</span></li>
+  <li><strong>与 SDK 的差异多数是本工程更正确</strong>(PA_26 非 LED、PA_44 非充电 INT,均经网表核实)。<strong>PA_01 矛盾已定论</strong>:核心板网 <code>PA_01_LCD_BL_PWM</code> 经 22P FPC pin 2 映射到屏幕板 FPC pin 21(映射关系"屏侧 = 23 − 核心板侧",14 个信号逐一吻合),屏幕板 V1.1 网表中该脚 <strong>NC 悬空</strong>(屏幕板为纯无源转接板,电源 IC 在屏排线模组内)。SDK 上电拉高 PA_01 在本屏版本上是无操作,DTS 不建模是正确的。</li>
+</ol>
+
+<h2 id="arch">1. 工程整体架构</h2>
+
+<h3>1.1 west workspace 布局</h3>
+<pre><code>E:\1\sf32lb52-zephyr-example\           ← west workspace 根(非 git 仓库)
+├── .west\config                         ← manifest = application/west.yml
+├── application\                         ← ★ manifest 仓库(应用 + 板级,git 仓库)
+│   ├── west.yml                         ← 依赖声明:zephyr-downstream、lvgl 等
+│   ├── app\                             ← 主应用(blink + sensor 模板脚手架)
+│   ├── samples\uart_shell、smf_thermostat
+│   ├── drivers\blink、sensor\example_sensor   ← 自定义驱动示例
+│   ├── dts\bindings\                    ← 自定义驱动的 DT 绑定
+│   ├── lib\custom\
+│   └── boards\
+│       ├── sifli\sf32lb52_hspi\         ← ★ 黄山派板级(DTS/pinctrl/文档/网表)
+│       └── vendor\custom_plank\         ← 脚手架模板示例板
+├── zephyr\                              ← OpenSiFli/zephyr-downstream(Zephyr fork)
+│   ├── soc\sifli\sf32\sf32lb52x\        ← SoC 启动/内存/Kconfig
+│   ├── dts\arm\sifli\sf32lb52x.dtsi     ← SoC 设备树
+│   ├── boards\sifli\sf32lb52_devkit_lcd\ ← 官方 DevKit-LCD(HSPI 的蓝本)
+│   └── drivers\...                      ← 20+ 类 SiFli 驱动
+├── modules\
+│   ├── hal\sifli\                       ← BF0 HAL/LL、cmsis 寄存器头、ipc_queue、LCPU 安装
+│   ├── hal\cmsis_6\
+│   ├── fs\{fatfs, littlefs}
+│   └── lib\{gui\lvgl, cmsis-dsp, cmsis-nn, nanopb, zcbor}
+└── bootloader\mcuboot\                  ← 可选 bootloader/OTA</code></pre>
+
+<h3>1.2 依赖关系(west.yml)</h3>
+<ul>
+  <li><code>application/west.yml</code> 直接声明两个 project:<strong>lvgl</strong>(锁定 commit)与 <strong>zephyr</strong>(OpenSiFli <code>zephyr-downstream</code>,main 分支)。</li>
+  <li>其余模块(cmsis_6、<strong>hal_sifli</strong>、cmsis-dsp/nn、fatfs、littlefs、mcuboot、nanopb、zcbor)经 zephyr manifest 的 <code>name-allowlist</code> 白名单导入。</li>
+  <li>三层职责:<strong>板上外设 → application;外设驱动 → zephyr fork;寄存器/HAL → hal_sifli</strong>。</li>
+</ul>
+
+<h3>1.3 Zephyr fork 中的 SiFli 支持全景</h3>
+<table>
+<tr><th>子系统</th><th>DTS 节点</th><th>驱动</th><th>说明</th></tr>
+<tr><td>时钟</td><td><code>hxt48</code> <code>lxt32</code> <code>hrc48</code> <code>rcc_clk</code>(dll1/dll2)<code>pmuc_clk</code></td><td><code>clock_control_sf32lb_*.c</code></td><td>HSPI:系统 240 MHz(DLL1)、MPI1 288 MHz(DLL2)</td></tr>
+<tr><td>复位</td><td><code>rcc_rst</code></td><td><code>reset_sf32lb.c</code></td><td></td></tr>
+<tr><td>引脚复用</td><td><code>pinctrl</code>(PA0-44 + SA0-12)</td><td><code>pinctrl_sf32lb52x.c</code></td><td>宏形如 <code>PA33_I2C1_SDA</code></td></tr>
+<tr><td>GPIO</td><td><code>gpioa_00_31</code> / <code>gpioa_32_44</code></td><td><code>gpio_sf32lb.c</code></td><td>Zephyr 端口上限 32 pin,拆两组</td></tr>
+<tr><td>串口</td><td><code>usart1/2/3</code></td><td><code>uart_sf32lb.c</code></td><td>HSPI 仅启用 usart1</td></tr>
+<tr><td>I2C</td><td><code>i2c1~i2c4</code></td><td><code>i2c_sf32lb.c</code></td><td>HSPI 启用 1/2/3</td></tr>
+<tr><td>SPI</td><td><code>spi1/spi2</code></td><td><code>spi_sf32lb.c</code></td><td>HSPI 启用 spi1(TF 卡总线)</td></tr>
+<tr><td>DMA</td><td><code>dmac</code>(8 通道)</td><td><code>dma_sf32lb.c</code></td><td></td></tr>
+<tr><td>存储</td><td><code>mpi1</code>(OPI PSRAM)/<code>mpi2</code>(QSPI NOR)</td><td><code>memc_sf32lb_mpi_opi_psram.c</code> / <code>flash_sf32lb_mpi_qspi_nor.c</code></td><td></td></tr>
+<tr><td>显示</td><td><code>lcdc</code> + <code>mipi-dbi</code></td><td><code>mipi_dbi_sf32lb.c</code> + <code>display_co5300_qspi.c</code></td><td>CO5300 QSPI 面板驱动在 fork 内</td></tr>
+<tr><td>触摸</td><td>板级 i2c 子节点</td><td><code>input_ft6146.c</code></td><td>绑定 <code>focaltech,ft6146</code> 已有</td></tr>
+<tr><td>音频</td><td><code>audcodec</code></td><td><code>sf32lb_codec.c</code></td><td>DAC(喇叭)/ADC(麦克风)双 DMA</td></tr>
+<tr><td>蓝牙</td><td><code>mailbox</code></td><td><code>hci_sf32lb.c</code></td><td>HCI over 双核邮箱,控制器在 LCPU;依赖 hal_sifli 的 <code>ipc_queue</code> 与 <code>lcpu_install.c</code></td></tr>
+<tr><td>ADC</td><td><code>gpadc</code></td><td><code>adc_sf32lb.c</code></td><td><strong>HSPI 板级未启用 → 电池测压缺口</strong></td></tr>
+<tr><td>定时/PWM</td><td><code>atim</code>(+pwm)、<code>gptim2</code>(+pwm)</td><td><code>pwm_sf32lb_atim.c</code> / <code>pwm_sf32lb_gpt.c</code></td><td><strong>无 gptim1/btim/lptim 节点</strong></td></tr>
+<tr><td>RTC / 看门狗</td><td><code>rtc</code>、<code>wdt</code></td><td><code>rtc_sf32lb.c</code>、<code>wdt_sf32lb.c</code></td><td></td></tr>
+<tr><td>安全</td><td><code>crc</code> <code>crypto</code> <code>trng</code> <code>efuse</code></td><td><code>crc/crypto/entropy/otp_*.c</code></td><td>efuse 含 UID/ADC 出厂校准</td></tr>
+<tr><td>温度 / 电源</td><td><code>tsen</code>、<code>pmuc</code> LDO1/2/3</td><td><code>sf32lb_tsen.c</code>、<code>regulator_sf32lb_ldo.c</code></td><td></td></tr>
+</table>
+<div class="caution"><strong>SoC 级尚未支持</strong>(silicon 有、dtsi 无):USB(USBD)、SDIO(SD1)、GPTIM1、BTIM、LPTIM、I2S、AUDPRC、EPIC(2D 加速)等——这是部分板级缺口的根因。</div>
+
+<h3>1.4 hal_sifli 模块</h3>
+<ul>
+  <li><code>cmsis/sf32lb52x/</code>:寄存器定义、启动文件、<strong>LCPU 固件安装/初始化</strong>(<code>lcpu_install.c</code>、<code>bf0_lcpu_init.c</code>)。</li>
+  <li><code>hal/</code>:SiFli BF0 HAL(与 SiFli-SDK 同源);Zephyr 驱动多为「薄封装 + HAL」结构。</li>
+  <li><code>ll/</code> 低层驱动;<code>ipc_queue/</code> HCPU↔LCPU 邮箱队列(蓝牙 HCI 运输层)。</li>
+</ul>
+
+<h3>1.5 双核与蓝牙</h3>
+<p>SF32LB52x = <strong>HCPU(Cortex-M33,跑 Zephyr)+ LCPU(蓝牙控制器)</strong>。链路:<code>bt</code> 子系统 → <code>hci_sf32lb.c</code> → <code>ipc_queue</code>/<code>mailbox</code> → LCPU 固件。板级 <code>zephyr,bt-hci = &amp;mailbox</code> 即此。</p>
+
+<h3>1.6 存储与启动映射</h3>
+<table>
+<tr><th>区域</th><th>地址</th><th>大小</th><th>用途</th></tr>
+<tr><td><code>ptable</code> 分区</td><td>flash 0x0</td><td>64 KB</td><td>SiFli 引导 ROM 分区表</td></tr>
+<tr><td><code>code</code> 分区</td><td>flash 0x10000</td><td>16320 KB</td><td>Zephyr 应用(XIP)</td></tr>
+<tr><td>MPI2 NOR</td><td>0x12000000(映射)</td><td>16 MB(PY25Q128HA)</td><td>模组内 QSPI NOR,四线 + DMA</td></tr>
+<tr><td>MPI1 PSRAM</td><td>0x60000000</td><td>8 MB(片内 OPI)</td><td>memory-region "PSRAM",由 <code>ldo1_1v8</code> 供电</td></tr>
+<tr><td>SRAM</td><td>ram012</td><td>512 KB</td><td><code>sf32lb52x-ram012.dtsi</code></td></tr>
+</table>
+
+<h3>1.7 构建入口速查</h3>
+<pre><code># 工作区根目录下
+west build -b sf32lb52_hspi application/samples/uart_shell
+west flash            # runner = sftool(--chip=SF32LB52,经 CH340N 串口下载)
+west build -b sf32lb52_hspi application/app   # 主应用模板</code></pre>
+
+<h2 id="audit">2. HSPI 板 DTS 完整性审计(对照 OpenSiFli SDK)</h2>
+
+<h3>2.1 审计方法</h3>
+<ol>
+  <li><strong>本工程 DTS</strong>:<code>sf32lb52_hspi.dts</code> + <code>sf32lb52_hspi-pinctrl.dtsi</code>;</li>
+  <li><strong>SiFli-SDK 成熟板级</strong>:<code>customer/boards/sf32lb52-lchspi-ulp{,_base}/</code>(<code>bsp_pinmux.c</code>、<code>bsp_power.c</code>、<code>bsp_lcd_tp.c</code>、<code>board.conf</code>、<code>Kconfig.board</code>);</li>
+  <li><strong>既有硬件核对文档</strong>:<a href="./board-hardware-reference-pin-map.md">pin-map</a>、<a href="./SF32LB52-黄山派-资料.md">黄山派资料</a>(网表级核对)。</li>
+</ol>
+<p>图例:<span class="badge b-ok">✅ 已建模且启用</span> <span class="badge b-warn">🟡 已建模、disabled 占位</span> <span class="badge b-bad">❌ 未建模(缺口)</span></p>
+
+<h4>A. 显示与触摸</h4>
+<table>
+<tr><th>器件</th><th>硬件连接</th><th>SDK(lchspi-ulp)参考</th><th>Zephyr DTS 现状</th><th>状态</th></tr>
+<tr><td>AMOLED 屏 CO5300AF-01(390×450 QSPI)</td><td>PA_02~08 七线,RST PA_00</td><td><code>LCD_USING_TFT_CO5300</code>,QADSPI 分支引脚一致</td><td><code>&amp;lcdc</code>/<code>mipi_dbi</code>/<code>co5300</code> okay,pinctrl 与 SDK 完全一致</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>屏幕背光/电源使能 PA_01</td><td>22P FPC pin 2 → 屏幕板 FPC pin 21(<strong>网表 NC</strong>)</td><td><code>LCD_BACKLIGHT_CONTROL_PIN=1</code>(pwmt1 CH4);<code>bsp_lcd_tp.c</code> 以 <code>LCD_VADD_EN=PA1</code> 上电拉高</td><td>屏幕板 V1.1 网表核实该脚悬空,SDK 行为系无操作;结论已写入 co5300 节点注释,不建模</td><td><span class="badge b-ok">✅ 已定论</span></td></tr>
+<tr><td>FT6146-M00 触摸</td><td>I2C1:PA_33/PA_37;INT PA_41;RST PA_09</td><td><code>BSP_PIN_Touch()</code> 同引脚,<code>TOUCH_IRQ_PIN=41</code></td><td><code>&amp;i2c1</code> okay + <code>ft6146@38</code> disabled;fork 内驱动+绑定齐备</td><td><span class="badge b-warn">🟡</span> 可直接 bring-up</td></tr>
+</table>
+
+<h4>B. 传感器(I2C3,GS_3V3 供电)</h4>
+<table>
+<tr><th>器件</th><th>硬件连接</th><th>SDK 参考</th><th>Zephyr DTS 现状</th><th>状态</th></tr>
+<tr><td>LSM6DS3TR-C 六轴 IMU</td><td>I2C3 @0x6a,INT1 PA_31</td><td>驱动 <code>sensor/LSM6DSL/</code>,示例经 i2c3 + PA_38/PA_30 上电</td><td><code>lsm6dsl@6a</code>(<code>st,lsm6dsl</code>,irq PA_31)disabled</td><td><span class="badge b-warn">🟡</span></td></tr>
+<tr><td>MMC5603NJ 磁力计</td><td>I2C3 @0x30</td><td>驱动 <code>sensor/MMC56x3/</code></td><td><code>mmc56x3@30</code>(<code>memsic,mmc56x3</code>)disabled</td><td><span class="badge b-warn">🟡</span></td></tr>
+<tr><td>LTR-303ALS-01 光感</td><td>I2C3 @0x29</td><td>驱动 <code>sensor/LTR303/</code></td><td><code>ltr303@29</code> 借用 <code>liteon,ltr329</code>(寄存器近似、未验证)disabled</td><td><span class="badge b-warn">🟡</span> 先验证驱动兼容</td></tr>
+<tr><td>传感器总线</td><td>PA_39 SDA / PA_40 SCL</td><td>SDK 默认 board.conf <strong>未启用 I2C3</strong>(示例工程单独打开)</td><td><code>&amp;i2c3</code> okay,pinctrl 正确</td><td><span class="badge b-ok">✅</span> 比 SDK 默认更完整</td></tr>
+</table>
+<div class="note">读传感器前必须 <code>regulator_enable(gs_3v3)</code>(PA_30)并等 ≥500 µs;上游驱动无 vin-supply 逻辑,需应用层管理——与 SDK <code>bsp_power.c</code> 的 PA_38→PA_26→PA_30 顺序一致。</div>
+
+<h4>C. 电源(稳压器/LDO/充电/电池)</h4>
+<table>
+<tr><th>器件</th><th>硬件连接</th><th>SDK 参考</th><th>Zephyr DTS 现状</th><th>状态</th></tr>
+<tr><td>LP5240HVF(U2)VSYS_1 开关</td><td>EN = PA_38</td><td>深睡唤醒拉高 PA38</td><td><code>vsys_en</code> regulator-fixed,boot-on</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>ETA5055V330(U4)VCC_3V3 开关</td><td>EN = PA_26</td><td>SDK 误标 <code>LED1_PIN=26</code></td><td><code>vcc_3v3</code> regulator-fixed,always-on</td><td><span class="badge b-ok">✅</span> 已按网表纠错</td></tr>
+<tr><td>ETA5055V330(U15)GS_3V3</td><td>EN = PA_30</td><td>"Sensor Power"</td><td><code>gs_3v3</code> regulator-fixed,boot-off(应用层管理)</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>片内 LDO1 1.8 V</td><td>PSRAM 供电</td><td>—</td><td><code>&amp;ldo1_1v8</code> okay,mpi1 power-supply</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>片内 LDO3 3.3 V(VDD33_VOUT)</td><td>供 WS2812B、马达</td><td>—</td><td><code>&amp;ldo3_3v3</code> okay,更名 vdd33-vout</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>片内 LDO2 3.3 V</td><td>本板未用</td><td>—</td><td>保持 disabled</td><td><span class="badge b-ok">✅ 合理</span></td></tr>
+<tr><td>AW32001ECSR(U3)充电</td><td>I2C2:PA_10/PA_11,@0x49</td><td><code>CHARGE_USING_AW32001</code>;唤醒时直操 I2C2 关 CEB/看门狗</td><td><code>&amp;i2c2</code> okay + <code>charger@49</code> disabled;占位绑定已加入 <code>application/dts/bindings/charger/awinic,aw32001.yaml</code>,仍无驱动</td><td><span class="badge b-warn">🟡</span> 缺驱动</td></tr>
+<tr><td>电池电量测量(GPADC)</td><td>VBAT 内部通道 7(无外部引脚)</td><td><code>BSP_USING_ADC</code> + <code>battery_table.c</code> 放电曲线</td><td><code>&amp;gpadc</code> okay + <code>channel@7</code>(eFuse 出厂校准,驱动自动换算电池 mV),<code>zephyr,user</code> 提供 <code>io-channels</code> "vbat"</td><td><span class="badge b-ok">✅ 已补全</span></td></tr>
+<tr><td>VBUS 检测 PA_44</td><td>VBUS_5V 分压 → PA_44</td><td><code>BSP_CHARGER_INT_PIN=44</code>(当充电检测)</td><td><code>zephyr,user</code> 的 <code>vbus-det-gpios</code>(按网表以 VBUS_DET 建模,而非充电 INT)</td><td><span class="badge b-ok">✅ 已补全</span></td></tr>
+</table>
+
+<h4>D. 人机交互 / 杂项外设</h4>
+<table>
+<tr><th>器件</th><th>硬件连接</th><th>SDK 参考</th><th>Zephyr DTS 现状</th><th>状态</th></tr>
+<tr><td>KEY1(电源/HOME)</td><td>PA_34 高有效;长按经 Q1 拉低 CHG_INT → 关机</td><td><code>KEY1_PIN=34</code></td><td><code>key1</code> gpio-keys,注释警告副作用</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>KEY2(功能键)</td><td>PA_43 高有效</td><td><code>KEY2_PIN=43</code></td><td><code>key2</code> gpio-keys</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>WS2812B-2020 RGB 灯</td><td>数据 PA_32,VDD=VDD33_VOUT</td><td><code>RGBLED_CONTROL_PIN=32</code></td><td><code>led_strip</code>(ws2812-gpio)disabled,时序占位</td><td><span class="badge b-warn">🟡</span></td></tr>
+<tr><td>振动马达</td><td>PA_20 = GPTIM2_CH1,供电 VDD33_VOUT</td><td>VIB PWM</td><td><code>pwm_vibrator</code> + <code>gptim2_pwm</code> 均 disabled,pinctrl 已备</td><td><span class="badge b-warn">🟡</span></td></tr>
+<tr><td>红色电源 LED1</td><td>VBUS_5V 硬连,不可控</td><td>—</td><td>注释说明,无节点</td><td><span class="badge b-ok">✅ 正确</span></td></tr>
+<tr><td>音频 codec + 功放</td><td>片内 AUDCODEC;PA 使能 PA_42(U6 NS4150B)</td><td><code>AW8155_GPIO_PIN=42</code></td><td><code>&amp;audcodec</code> okay,TX/RX 双 DMA(含麦克风),pa-power-gpios=PA_42</td><td><span class="badge b-ok">✅</span></td></tr>
+<tr><td>TF 卡(SPI 模式)</td><td>SPI1:PA_24/25/28/29;检测 PA_27</td><td>SPI1 + PA_27 card detect</td><td><code>&amp;spi1</code> okay + <code>cs-gpios</code>(PA_29 改 GPIO 片选)+ <code>sdhc0</code>(<code>zephyr,sdhc-spi-slot</code>,<code>cd-gpios</code>=PA_27 上拉低有效)+ <code>sdmmc</code> 磁盘节点(disk-name "SD")</td><td><span class="badge b-ok">✅ 已补全</span></td></tr>
+<tr><td>USB(Type-C,PA_35/36)</td><td>USB2.0 FS + CH340N 下载口</td><td>SDK 有 USBD 栈</td><td><strong>SoC dtsi 无 usbd 节点</strong>;<code>uart_shell/usb.overlay</code> 引用的 <code>zephyr_udc0</code> 在本板不存在</td><td><span class="badge b-bad">❌ SoC 级</span></td></tr>
+</table>
+
+<h4>E. 系统级(全部就绪)</h4>
+<p><code>usart1</code>(1 Mbps 控制台)、<code>mailbox</code>(BT HCI)、<code>mpi1</code> PSRAM、<code>mpi2</code> NOR + 分区、<code>dmac</code>、<code>wdt</code>、<code>rtc</code>、<code>crc</code>、<code>crypto</code>、<code>trng</code>、<code>tsen</code>、<code>efuse</code>、<code>hxt48</code>/<code>lxt32</code>(PA_22/23)/<code>dll1</code> 240 MHz/<code>dll2</code> 288 MHz —— 均 <span class="badge b-ok">✅</span>,与 DevKit-LCD 蓝本一致且经网表核对修正。</p>
+
+<h3>2.3 引脚级对照结论(Zephyr pinctrl vs SDK bsp_pinmux)</h3>
+<ul>
+  <li><strong>PSRAM(MPI1)</strong>:Zephyr <code>mpi1_default</code> 与 SDK <code>board_pinmux_psram_func1_2_4(1)</code>(APS 64P XCELLA,8 MB OPI)<strong>逐脚一致</strong>。SDK 按芯片 PID 运行时选表,Zephyr 静态声明——对 525UC6 正确。</li>
+  <li><strong>NOR(MPI2)</strong>:SDK 显式配置 PA_12~17;Zephyr 不配置(无 pinctrl-0),依赖引导 ROM 在 XIP 启动前配好。可用,但属"隐式契约"。</li>
+  <li><strong>UART1/I2C1/I2C2/I2C3/SPI1/LCDC/LXT32</strong>:两边逐脚一致。</li>
+  <li><strong>SDK 有而 Zephyr 无</strong>:仅剩 PA_35/36(USB,受限于 SoC 级无 usbd 节点)。原差异项已于 2026-07-02 处理:PA_01 网表证实 NC、PA_27 已作 <code>cd-gpios</code>、PA_44 已入 <code>zephyr,user</code>。另注意 PA_29 有意从 <code>SPI1_CS</code> 复用改为 GPIO 片选(<code>cs-gpios</code>),与 SDK 硬件 CS 方案不同,原因见 §2.6。</li>
+  <li><strong>SDK board.conf 的 <code>BSP_USING_I2C4</code></strong>:基板无 I2C4 pinmux,疑为遗留配置,不构成缺口。</li>
+</ul>
+
+<h3>2.4 缺口清单与处理结果(2026-07-02 更新)</h3>
+<table>
+<tr><th>#</th><th>缺口</th><th>处理结果</th></tr>
+<tr><td>1</td><td><strong>PA_01 屏幕背光/VADD 使能</strong></td><td><span class="badge b-ok">✅ 已定论,无需建模</span> 屏幕板 V1.1 网表证实该脚在屏侧 NC 悬空(映射到屏侧 FPC pin 21);结论已写入 co5300 节点注释</td></tr>
+<tr><td>2</td><td><strong>电池电量:gpadc 未启用</strong></td><td><span class="badge b-ok">✅ 已补全</span> <code>&amp;gpadc</code> okay + <code>channel@7</code>(内部 VBAT,eFuse 校准)+ <code>zephyr,user</code> <code>io-channels</code> "vbat";pinctrl 使用合法的空状态(所有外部 ADC 引脚均被占用);电量换算曲线可移植 SDK <code>battery_table.c</code></td></tr>
+<tr><td>3</td><td><strong>TF 卡无设备节点</strong></td><td><span class="badge b-ok">✅ 已补全</span> <code>sdhc0</code>(<code>zephyr,sdhc-spi-slot</code>,24 MHz)+ <code>sdmmc</code> 磁盘(disk-name "SD")+ <code>cd-gpios</code>=PA_27;PA_29 改为 GPIO 片选(<code>cs-gpios</code>)</td></tr>
+<tr><td>4</td><td><strong>PA_44 VBUS 检测未建模</strong></td><td><span class="badge b-ok">✅ 已补全</span> <code>zephyr,user</code> <code>vbus-det-gpios</code>,按网表以 VBUS_DET 建模</td></tr>
+<tr><td>5</td><td><strong>AW32001 无驱动/绑定</strong></td><td><span class="badge b-warn">🟡 绑定已补</span>(<code>application/dts/bindings/charger/awinic,aw32001.yaml</code>,含 SDK 寄存器参考);驱动仍缺,节点保持 disabled</td></tr>
+<tr><td>6</td><td><strong>7 个 disabled 节点待 bring-up</strong></td><td><span class="badge b-warn">🟡 维持现状</span>(策略性,非缺失):先 gs_3v3 时序 → I2C3 扫描 0x6a/0x30/0x29 → 逐个 okay;LTR303 先验证 ltr329 兼容性</td></tr>
+<tr><td>7</td><td><strong>USB / SDIO SoC 级无节点</strong></td><td><span class="badge b-bad">❌ 仍开放</span> 需在 fork 的 <code>sf32lb52x.dtsi</code> 补节点并写驱动(HAL 已有 <code>bf0_hal_pcd/hcd/sdhci</code> 底层),列入路线图</td></tr>
+</table>
+
+<h3 id="sec26">2.6 DTS 补全记录(2026-07-02)</h3>
+<table>
+<tr><th>文件</th><th>修改内容</th></tr>
+<tr><td><code>sf32lb52_hspi.dts</code></td><td>① 新增 <code>zephyr,user</code>(<code>vbus-det-gpios</code>=PA_44、<code>io-channels</code>=&lt;&amp;gpadc 7&gt; "vbat");② 启用 <code>&amp;gpadc</code> + <code>channel@7</code>(内部 VBAT);③ <code>&amp;spi1</code> 加 <code>cs-gpios</code>(PA_29)并挂 <code>sdhc0</code>/<code>sdmmc</code> TF 卡节点(<code>cd-gpios</code>=PA_27);④ aliases 补 <code>led-strip</code>;⑤ co5300 注释补 PA_01 网表 NC 结论;⑥ 头部补 <code>adc.h</code> include</td></tr>
+<tr><td><code>sf32lb52_hspi-pinctrl.dtsi</code></td><td>① <code>spi1_default</code> 移除 <code>PA29_SPI1_CS</code>(改由 <code>cs-gpios</code> GPIO 片选——SD 协议要求跨多次传输保持 CS,<code>sdhc_spi</code> 依赖 <code>SPI_HOLD_ON_CS</code>,GPIO 片选由 spi_context 统一处理);② 新增空的 <code>gpadc_default</code> 状态(绑定强制要求 pinctrl,而 PA_28~34=CH0~6 全部另作他用,仅内部 VBAT 通道可用)</td></tr>
+<tr><td><code>application/dts/bindings/charger/awinic,aw32001.yaml</code></td><td>新增 AW32001 占位绑定(含 SDK 寄存器级参考注释),使 <code>charger@49</code> 节点通过绑定校验</td></tr>
+</table>
+<div class="note"><strong>构建验证</strong>(板卡 <code>sf32lb52_hspi/sf32lb525uc6</code>,样例 <code>samples/uart_shell</code>):① 默认配置构建成功(FLASH 65 848 B / RAM 12 904 B);② 驱动全开(<code>CONFIG_ADC/SPI/SDHC/REGULATOR/DISK_ACCESS/DISK_DRIVER_SDMMC=y</code>)构建成功(FLASH 84 576 B),确认 <code>CONFIG_ADC_SF32LB</code>(含 eFuse 校准)、<code>CONFIG_DISK_DRIVER_SDMMC</code>、<code>CONFIG_REGULATOR_FIXED</code>、sdhc-spi-slot 全部实例化,空 pinctrl 状态代码生成无告警。</div>
+<div class="caution">注:workspace 曾整体从 <code>E:\sf32lb52-zephyr-example</code> 移动到 <code>E:\1\...</code>,<code>samples/uart_shell/build/</code> 旧缓存内是失效的绝对路径,重建时请删除或换目录。</div>
+
+<h3>2.5 SDK 与网表的矛盾点备忘(读 SDK 防坑)</h3>
+<table>
+<tr><th>引脚</th><th>SDK 的说法</th><th>网表/本工程核实</th><th>结论</th></tr>
+<tr><td>PA_26</td><td><code>BSP_LED1_PIN=26</code>(LED)</td><td>ETA5055V330(U4)EN,VCC_3V3 载荷开关;真 LED1 是 VBUS 硬连红灯</td><td>信网表:建模为 <code>vcc_3v3</code> regulator ✅</td></tr>
+<tr><td>PA_44</td><td><code>BSP_CHARGER_INT_PIN=44</code></td><td>VBUS_5V 分压检测;AW32001 INT 走 CHG_INT,经 Q1 与 PA_34 联动,不直连 MCU</td><td>信网表:按 VBUS_DET 建模</td></tr>
+<tr><td>PA_01</td><td><code>LCD_VADD_EN</code>/背光 PWM,上电拉高</td><td>屏幕板 V1.1 网表:PA_01 映射至屏侧 FPC pin 21,<strong>NC 悬空</strong>;屏幕板为纯无源转接板(仅电容/上拉电阻,BV6802W 在屏排线模组内部)</td><td><strong>已定论</strong>:SDK 拉高 PA_01 在本屏版本上是无操作;DTS 不建模 ✅</td></tr>
+<tr><td>PA_34</td><td>仅 "Key1 - Power key"</td><td>同时驱动 Q1 栅极 → 拉低 CHG_INT;长按触发 shipping mode(硬关机)</td><td>固件禁止长时间驱高 PA_34(DTS 注释已警告)</td></tr>
+<tr><td>功放型号</td><td>AW8155</td><td>BOM/网表:U6 = NS4150B(使能脚同为 PA_42)</td><td>行为等价,型号以 BOM 为准</td></tr>
+<tr><td>RGB 灯型号</td><td>SiFli wiki:SK6812MINI-HS</td><td>立创 BOM:WS2812B-2020</td><td>协议兼容,时序实测</td></tr>
+<tr><td>充电 IC 型号</td><td>SiFli wiki:SY6103</td><td>BOM/SDK/网表:AW32001ECSR</td><td>以 AW32001(@0x49)为准</td></tr>
+</table>
+
+<h2 id="learn">3. 学习路径建议(从零上手本工程)</h2>
+<ol>
+  <li><strong>跑通闭环</strong>:<code>west build -b sf32lb52_hspi application/samples/uart_shell</code> → <code>west flash</code> → 1 Mbps 串口进 shell,玩 <code>device list</code>、<code>kernel threads</code>、<code>bt</code> 命令(验证 LCPU 蓝牙链路)。</li>
+  <li><strong>读板级 DTS</strong>(配合 <a href="./dts-reference.md">dts-reference.md</a> 逐行解析):<code>sf32lb52_hspi.dts</code> → <code>sf32lb52x.dtsi</code> → 各绑定 yaml,理解 chosen/regulator/pinctrl 三大块。</li>
+  <li><strong>第一个 bring-up 实验(推荐传感器)</strong>:应用里 <code>regulator_enable(gs_3v3)</code> + 延时,overlay 把 <code>lsm6dsl</code> 置 okay,用 <code>sensor</code> shell 读数——完整体验"电源时序 + overlay + 驱动绑定"链路。</li>
+  <li><strong>显示/触摸</strong>:显示已 okay,可直接跑 lvgl(模块已拉取);触摸置 okay 验证 input 子系统。(PA_01 已证实 NC,屏幕排障时无需再查该脚。)</li>
+  <li><strong>功能启用练手</strong>:DTS 侧缺口已补全,应用层直接启用即可——TF 卡(<code>CONFIG_DISK_DRIVER_SDMMC</code> + fatfs 挂载 "SD")、电池电压(<code>CONFIG_ADC</code>,读 <code>zephyr,user</code> 的 "vbat" 通道)、VBUS 检测(GPIO 读 <code>vbus-det-gpios</code>)。进阶题目:AW32001 充电驱动、SoC 级 USB/SDIO 支持。</li>
+  <li><strong>架构深潜</strong>:<code>hci_sf32lb.c</code> + <code>ipc_queue</code>(双核)、<code>memc_sf32lb_mpi_opi_psram.c</code>(存储)、SDK <code>bsp_power.c</code>(低功耗流程,Zephyr 侧 PM 尚未对齐——进阶方向)。</li>
+</ol>
+
+<h2 id="refs">4. 相关文档索引</h2>
+<table>
+<tr><th>文档</th><th>内容</th></tr>
+<tr><td><a href="./board-hardware-reference-pin-map.md">board-hardware-reference-pin-map.md</a></td><td>逐 pin ↔ 器件对照、30P/22P 排针表</td></tr>
+<tr><td><a href="./board-hardware-reference.html">board-hardware-reference.html</a></td><td>硬件参考页(网表 × SDK × DTS 交叉验证)</td></tr>
+<tr><td><a href="./dts-reference.md">dts-reference.md</a></td><td>板级 DTS 逐行解析</td></tr>
+<tr><td><a href="./power-tree.md">power-tree.md</a></td><td>电源树与 KEY1 关机行为</td></tr>
+<tr><td><a href="./psram-registration.md">psram-registration.md</a></td><td>PSRAM 注册机制研究</td></tr>
+<tr><td><a href="./SF32LB52-黄山派-资料.md">SF32LB52-黄山派-资料.md</a></td><td>SDK 侧板级资料汇编(源自 OpenSiFli)</td></tr>
+<tr><td><a href="./sensors.html">sensors.html</a></td><td>板载传感器/器件参考(含 datasheet 链接)</td></tr>
+</table>
+
+</div>
+</body>
+</html>

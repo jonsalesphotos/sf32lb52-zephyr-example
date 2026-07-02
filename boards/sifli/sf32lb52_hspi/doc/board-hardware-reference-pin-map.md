@@ -11,7 +11,7 @@
 
 ## 快速结论
 
-- 屏幕 QSPI 使用 `PA_00` 到 `PA_08`，其中 `PA_01` 是背光 PWM。
+- 屏幕 QSPI 使用 `PA_00` 到 `PA_08`。`PA_01` 名义为背光 PWM,但屏幕板 V1.1 网表证实其屏侧引脚(FPC 镜像映射后为屏侧 pin 21)悬空 NC,实际无功能。
 - 触摸屏 `FT6146-M00` 使用 `PA_33` SDA、`PA_37` SCL、`PA_41` INT、`PA_09` RST。
 - 板上传感器 `LSM6DS3TR-C`、`MMC5603NJ`、`LTR-303ALS-01` 共享传感器 I2C：`PA_39` SDA、`PA_40` SCL，并有 `PA_31` INT1、`PA_30` 传感器电源控制。
 - TF 卡占用 SPI1：`PA_24` DO、`PA_25` DI、`PA_28` CLK、`PA_29` CS，另有 `PA_27` DET。
@@ -23,7 +23,7 @@
 | Pin/网络 | 信号/功能 | 连接的器件或资源 | 引出位置 | Zephyr/DTS 备注 |
 |---|---|---|---|---|
 | `PA_00` | LCD reset | AMOLED 屏幕 QSPI reset | 22P FPC pin 12, 模组 pin 47 | `display reset` 已用 |
-| `PA_01` | LCD BL_PWM | 屏幕背光 PWM | 22P FPC pin 2, 模组 pin 46 | 未配置 backlight |
+| `PA_01` | LCD BL_PWM | 名义背光 PWM;屏幕板 V1.1 网表证实屏侧 NC 悬空 | 22P FPC pin 2, 模组 pin 46 | 已定论不建模(见 co5300 节点注释) |
 | `PA_02` | LCD QSPI TE | AMOLED 屏幕 tearing effect | 22P FPC pin 11, 模组 pin 45 | LCDC QSPI |
 | `PA_03` | LCD QSPI CS | AMOLED 屏幕 QSPI CS | 22P FPC pin 15, 模组 pin 44 | LCDC QSPI |
 | `PA_04` | LCD QSPI CLK | AMOLED 屏幕 QSPI CLK | 22P FPC pin 13, 模组 pin 43 | LCDC QSPI |
@@ -43,12 +43,13 @@
 | `PA_18` | UART RXD | `CH340N` USB 转串口调试/下载 RX | 30P pin 27, 模组 pin 30 | USART1 RX |
 | `PA_19` | UART TXD | `CH340N` USB 转串口调试/下载 TX | 30P pin 25, 模组 pin 29 | USART1 TX |
 | `PA_20` | VIB PWM | 振动马达控制，马达供电来自 `VDD33_VOUT` | 30P pin 24, 模组 pin 28 | `pwm-vibrator` 已建，占位 disabled；pinctrl = `PA20_GPTIM2_CH1` |
+| `PA_21` | — | 未出现在核心板网表(SoC 有该脚,模组未引出/板上未使用) | — | 无需建模 |
 | `PA_22` | XTAL32K XI | 32.768 kHz 低速晶振输入 | 模组 pin 6 | 已配 LXT32 |
 | `PA_23` | XTAL32K XO | 32.768 kHz 低速晶振输出 | 模组 pin 5 | 已配 LXT32 |
 | `PA_24` | SPI1 DO | Micro SD/TF 卡 DO | 30P pin 20, 模组 pin 18 | SPI1 pinctrl |
 | `PA_25` | SPI1 DI | Micro SD/TF 卡 DI | 30P pin 22, 模组 pin 19 | SPI1 pinctrl, 偏置应上拉 |
 | `PA_26` | VSYS_1 to VCC33 switch | 电源路径/3.3 V 切换控制 | 模组 pin 20 | DTS `vcc_3v3` regulator，高有效 |
-| `PA_27` | SD_DET | Micro SD/TF 卡插入检测 | 30P pin 23, 模组 pin 21 | 未配置 |
+| `PA_27` | SD_DET | Micro SD/TF 卡插入检测 | 30P pin 23, 模组 pin 21 | 已配置:`sdhc0` 节点 `cd-gpios`(上拉,低有效) |
 | `PA_28` | SPI1 CLK | Micro SD/TF 卡 CLK | 30P pin 21, 模组 pin 22 | SPI1 pinctrl |
 | `PA_29` | SPI1 CS | Micro SD/TF 卡 CS | 30P pin 19, 模组 pin 23 | SPI1 pinctrl |
 | `PA_30` | Sensor power control | 板上传感器电源控制/电源切换 | 30P pin 18, 模组 pin 24 | DTS `gs_3v3` regulator 已配 |
@@ -65,7 +66,7 @@
 | `PA_41` | TP INT | 触摸屏 `FT6146-M00` 中断 | 22P FPC pin 18, 模组 pin 7 | `ft6146 int-gpios` 已建, 节点 disabled |
 | `PA_42` | Audio_PA_EN | 板载 Class-D 音频功放使能脚 | 模组 pin 4 | `audcodec pa-power-gpios` 已配 |
 | `PA_43` | KEY2 | `SW2` 功能按键 | 30P pin 28, 模组 pin 3 | `key2` 已配 |
-| `PA_44` | VBUS_DET | 充电器插入检测/电源路径检测 | 模组 pin 2 | VBUS 分压检测;不是 AW32001 INT |
+| `PA_44` | VBUS_DET | 充电器插入检测/电源路径检测 | 模组 pin 2 | 已配置:`zephyr,user` 的 `vbus-det-gpios`;不是 AW32001 INT |
 | `MIC_BIAS` | MIC 偏置 | 板载 MEMS MIC | 模组 pin 36 | 模拟音频网络 |
 | `MIC_ADC_IN` | MIC ADC 输入 | 板载 MEMS MIC | 模组 pin 37 | 模拟音频网络 |
 | `AU_DAC1P_OUT` | DAC 正端输出 | 模拟音频输出/功放输入 | 模组 pin 33 | 模拟音频网络 |
@@ -177,8 +178,10 @@
 | RGB LED | `led-strip` 已建, status disabled | `PA_32` -> LED3 WS2812B-2020；VDD = `VDD33_VOUT` | `worldsemi,ws2812-gpio` 使用 `gpios` 属性, 时序需实测 |
 | VDD33_VOUT / LDO3 | `ldo3_3v3` 已建, `regulator-name = "vdd33-vout"` | `VDD33_VOUT2` / `VDD33_VOUT` 给 WS2812B 和振动马达供电 | 内部 LDO3 输出，不是外部输入；负载总电流按 150 mA 预算 |
 | 振动马达 | `pwm-vibrator` 已建, status disabled；`PA20_GPTIM2_CH1` pinctrl 已建 | `PA_20_VIB_PWM` 控制马达，供电来自 `VDD33_VOUT` 经 R36 | 启用前确认 PWM 频率、占空比和启动电流 |
-| Backlight | 未配置 | `PA_01_LCD_BL_PWM`, 22P FPC pin 2 | 添加 PWM 或 GPIO backlight 节点 |
-| SD_DET / USB | 未配置 | `PA_27` / `PA_35` `PA_36` | 需要对应功能时再补节点 |
+| Backlight | 不建模(已定论) | `PA_01_LCD_BL_PWM`, 22P FPC pin 2 → 屏侧 pin 21 | 屏幕板 V1.1 网表证实屏侧 NC 悬空,SDK 拉高该脚系无操作 |
+| SD 卡 / SD_DET | 已配置(2026-07-02) | `PA_24/25/28/29` SPI1 + `PA_27` | `sdhc0`(`zephyr,sdhc-spi-slot`)+ `sdmmc` 磁盘 + `cd-gpios`;PA_29 改 GPIO 片选(`cs-gpios`) |
+| 电池电压 / VBUS | 已配置(2026-07-02) | GPADC 内部通道 7 / `PA_44` | `&gpadc` + `channel@7`(eFuse 校准);`zephyr,user`(`io-channels` "vbat"、`vbus-det-gpios`) |
+| USB | 未配置 | `PA_35` `PA_36` | SoC 级无 usbd 节点,待 zephyr fork 支持 |
 
 ## 传感器补充说明
 

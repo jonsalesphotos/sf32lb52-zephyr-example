@@ -67,6 +67,11 @@ Hardware Reference Artifacts
 The local board documentation directory includes downloaded open hardware
 artifacts and a consolidated pin/resource reference page:
 
+- :download:`Project architecture and DTS completeness study (Markdown) <architecture-and-dts-completeness.md>`
+  (west workspace architecture, SiFli driver inventory, and the per-device
+  DTS completeness audit against the SiFli-SDK ``sf32lb52-lchspi-ulp`` board)
+- :download:`Project architecture and DTS completeness study (HTML) <architecture-and-dts-completeness.html>`
+  (same content as a standalone styled page)
 - :download:`Board hardware reference <board-hardware-reference.html>`
   (30P/22P connectors, 68-pin module map, board resources, and the
   netlist x SDK x DTS cross-validation summary)

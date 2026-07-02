@@ -497,7 +497,7 @@
           <strong>网表/SDK 有、DTS 缺</strong>
           <div class="chip-list">
             <span class="chip">传感器电源 PA_38(VSYS,最先)+ PA_26(VCC3V3)</span>
-            <span class="chip">背光 PWM PA_01(GPTIM1_CH4)</span>
+            <span class="chip">背光 PWM PA_01(屏侧 NC,已定论不建模)</span>
             <span class="chip">VBUS_DET PA_44</span>
             <span class="chip">马达 PA_20 已建占位 / SD_DET PA_27 / USB PA_35·36</span>
           </div>
@@ -593,7 +593,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>LCD QSPI 显示</td><td><code>PA_00</code> RST，<code>PA_01</code> BL_PWM，<code>PA_02</code> TE，<code>PA_03</code> CS，<code>PA_04</code> CLK，<code>PA_05</code> D0，<code>PA_06</code> D1，<code>PA_07</code> D2，<code>PA_08</code> D3</td><td>22P QSPI FPC</td><td>占用后不能同时作为普通 GPIO；当前 DTS 已启用 QSPI 显示核心信号，背光 <code>PA_01</code> 待补。</td></tr>
+            <tr><td>LCD QSPI 显示</td><td><code>PA_00</code> RST，<code>PA_01</code> BL_PWM，<code>PA_02</code> TE，<code>PA_03</code> CS，<code>PA_04</code> CLK，<code>PA_05</code> D0，<code>PA_06</code> D1，<code>PA_07</code> D2，<code>PA_08</code> D3</td><td>22P QSPI FPC</td><td>占用后不能同时作为普通 GPIO；当前 DTS 已启用 QSPI 显示核心信号;<code>PA_01</code> 屏侧 NC,已定论不建模(2026-07-02)。</td></tr>
             <tr><td>触摸屏接口</td><td><code>PA_33</code> SDA，<code>PA_37</code> SCL，<code>PA_41</code> INT，<code>PA_09</code> RST</td><td><code>FT6146-M00</code>，22P QSPI FPC</td><td>DTS 已建 i2c1 pinctrl 和 FT6146 GPIO,触摸子节点默认 disabled。</td></tr>
             <tr><td>Micro SD / TF 卡</td><td><code>PA_24</code> DO，<code>PA_25</code> DI，<code>PA_28</code> CLK，<code>PA_29</code> CS，<code>PA_27</code> DET</td><td>板载 TF 卡座，30P pin 20/22/21/19/23</td><td>使用 30P 扩展 SPI 时会和板载 TF 卡冲突；若作 GPIO，TF 卡功能不可用。</td></tr>
             <tr><td>调试 UART / 下载</td><td><code>PA_19</code> TXD，<code>PA_18</code> RXD</td><td><code>CH340N</code> USB 转串口芯片，30P pin 25/27</td><td>建议保留作 console/shell/download；复用会影响调试和烧录体验。</td></tr>
@@ -651,7 +651,7 @@
         </div>
       </div>
       <div class="callout warn">
-        当前 <code>sf32lb52_hspi.dts</code> 已按黄山派网表修正 KEY2、触摸 I2C、充电 I2C、音频 PA 使能和 RGB LED GPIO 绑定。下面表格继续标注默认 disabled、驱动待补或仍未建模的外设。
+        当前 <code>sf32lb52_hspi.dts</code> 已按黄山派网表修正 KEY2、触摸 I2C、充电 I2C、音频 PA 使能和 RGB LED GPIO 绑定;2026-07-02 又补全了 TF 卡(sdhc0/sdmmc + PA_27 检测)、电池 GPADC(内部通道 7)和 PA_44 VBUS 检测(zephyr,user),PA_01 经屏幕板网表证实 NC 不建模。下面表格继续标注默认 disabled、驱动待补或仍未建模的外设。
       </div>
     </section>
 
@@ -691,7 +691,7 @@
             <tr><td>16</td><td><code>PA_40_I2C3_SCL</code></td><td>Default I2C SCL</td><td><span class="tag ok">I2C3 SCL</span></td><td>占用：板上传感器 I2C SCL；与 14 脚组成传感器 I2C，传感器子节点默认 disabled。</td></tr>
             <tr><td>17</td><td><code>PA_32</code></td><td>Default RGB LED data，可作 GPIO</td><td><span class="tag warn">led_strip disabled</span></td><td>占用：板载 <code>WS2812B-2020</code> RGB LED 数据；VDD 来自 <code>VDD33_VOUT</code>；DTS 已建 <code>worldsemi,ws2812-gpio</code> 节点，默认 disabled。</td></tr>
             <tr><td>18</td><td><code>PA_30</code></td><td>Default Sensor power control</td><td><span class="tag ok">gs_3v3 regulator</span></td><td>占用：板上传感器电源控制；作 GPIO 时会影响 <code>PA_39</code> / <code>PA_40</code> 传感器 I2C。</td></tr>
-            <tr><td>19</td><td><code>PA_29_SPI1_CS</code></td><td>Default SPI1_CS，可作 GPIO</td><td><span class="tag ok">SPI1 CS</span></td><td>占用：板载 TF 卡 SPI1 CS；扩展 SPI 时核心板 TF 卡不能插入。</td></tr>
+            <tr><td>19</td><td><code>PA_29_SPI1_CS</code></td><td>Default SPI1_CS，可作 GPIO</td><td><span class="tag ok">TF 卡片选</span></td><td>占用：板载 TF 卡片选(DTS 中为 GPIO 片选 cs-gpios,非硬件 SPI1_CS);扩展 SPI 时核心板 TF 卡不能插入。</td></tr>
             <tr><td>20</td><td><code>PA_24_SPI1_DO</code></td><td>Default SPI1_DO，可作 GPIO</td><td><span class="tag ok">SPI1 DIO/DO</span></td><td>占用：板载 TF 卡 SPI1 DO，同时引到 30P 扩展。</td></tr>
             <tr><td>21</td><td><code>PA_28_SPI1_CLK</code></td><td>Default SPI1_CLK，可作 GPIO</td><td><span class="tag ok">SPI1 CLK</span></td><td>占用：板载 TF 卡 SPI1 CLK，同时引到 30P 扩展。</td></tr>
             <tr><td>22</td><td><code>PA_25_SPI1_DI</code></td><td>Default SPI1_DI，可作 GPIO</td><td><span class="tag ok">SPI1 DI</span></td><td>占用：板载 TF 卡 SPI1 DI，同时引到 30P 扩展。</td></tr>
@@ -728,7 +728,7 @@
           </thead>
           <tbody>
             <tr><td>1</td><td><code>VBAT</code></td><td>VBAT 电源输出</td><td><span class="tag">电源</span></td><td>占用：屏幕/背光电源输入；本地网表经 0 ohm 电阻关联到屏幕电源网络，使用前按原理图确认电压域。</td></tr>
-            <tr><td>2</td><td><code>PA_01_LCD_BL_PWM</code></td><td>BL PWM，TFT 背光</td><td><span class="tag warn">DTS 未配</span></td><td>占用：LCD 背光 PWM；需要背光控制时补充 PWM/GPIO 节点。</td></tr>
+            <tr><td>2</td><td><code>PA_01_LCD_BL_PWM</code></td><td>BL PWM(名义)</td><td><span class="tag ok">已定论不建模</span></td><td>屏幕板 V1.1 网表证实屏侧 FPC pin 21 悬空(NC),SDK 拉高该脚系无操作(2026-07-02)。</td></tr>
             <tr><td>3</td><td><code>PA_07_LCD_QSPI_D2</code></td><td>QSPI D2 / LCD</td><td><span class="tag ok">LCDC QSPI</span></td><td>占用：LCD QSPI D2，经串联电阻到 FPC。</td></tr>
             <tr><td>4</td><td><code>PA_08_LCD_QSPI_D3</code></td><td>QSPI D3 / LCD</td><td><span class="tag ok">LCDC QSPI</span></td><td>占用：LCD QSPI D3，经串联电阻到 FPC。</td></tr>
             <tr><td>5</td><td><code>NC</code></td><td>NC</td><td><span class="tag">未用</span></td><td></td></tr>
@@ -793,7 +793,7 @@
             <tr><td>20</td><td><code>PA_26</code></td><td>VSYS_1 to VCC33 切换控制</td><td>占用：电源路径切换控制；当前 DTS 已按 <code>vcc_3v3</code> regulator 建模，不作为普通 LED。</td></tr>
             <tr><td>21</td><td><code>PA_27</code></td><td>SD 卡_CD 信号</td><td>占用：TF 卡插入检测，30P pin 23。</td></tr>
             <tr><td>22</td><td><code>PA_28</code></td><td>SPI1_CLK，SD 卡接口信号</td><td>占用：TF 卡 SPI1 CLK；<span class="tag ok">SPI1</span> 30P pin 21。</td></tr>
-            <tr><td>23</td><td><code>PA_29</code></td><td>SPI1_CS，SD 卡接口信号</td><td>占用：TF 卡 SPI1 CS；<span class="tag ok">SPI1</span> 30P pin 19。</td></tr>
+            <tr><td>23</td><td><code>PA_29</code></td><td>SPI1_CS，SD 卡接口信号</td><td>占用：TF 卡片选(DTS 为 GPIO 片选 cs-gpios);<span class="tag ok">SPI1</span> 30P pin 19。</td></tr>
             <tr><td>24</td><td><code>PA_30</code></td><td>VSYS_1 to HR3V3 切换控制</td><td>占用：传感器电源控制/电源切换；当前 DTS 已建 <code>gs_3v3</code> regulator。</td></tr>
             <tr><td>25</td><td><code>PA_31</code></td><td>传感器 INT1</td><td>占用：<code>LSM6DS3TR-C</code> INT1；当前 DTS 在 disabled 的 lsm6ds3tr_c 节点中作为 interrupt GPIO。</td></tr>
             <tr><td>26</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td></tr>
@@ -816,7 +816,7 @@
             <tr><td>43</td><td><code>PA_04</code></td><td>QSPI CLK，E-Paper SCLK，LCD 接口信号</td><td>占用：LCD QSPI CLK；<span class="tag ok">LCDC QSPI</span> 22P FPC pin 13。</td></tr>
             <tr><td>44</td><td><code>PA_03</code></td><td>QSPI CS，E-Paper CS，LCD 接口信号</td><td>占用：LCD QSPI CS；<span class="tag ok">LCDC QSPI</span> 22P FPC pin 15。</td></tr>
             <tr><td>45</td><td><code>PA_02</code></td><td>QSPI TE，E-Paper BUSY，LCD 接口信号</td><td>占用：LCD QSPI TE；<span class="tag ok">LCDC QSPI</span> 22P FPC pin 11。</td></tr>
-            <tr><td>46</td><td><code>PA_01</code></td><td>BL PWM，LCD 接口信号</td><td>占用：LCD 背光 PWM；<span class="tag warn">DTS 未配</span> 22P FPC pin 2。</td></tr>
+            <tr><td>46</td><td><code>PA_01</code></td><td>BL PWM(名义),LCD 接口信号</td><td>22P FPC pin 2 → 屏侧 pin 21 悬空(NC);<span class="tag ok">已定论不建模</span>(2026-07-02)。</td></tr>
             <tr><td>47</td><td><code>PA_00</code></td><td>RSTB，LCD 接口信号</td><td>占用：LCD reset；<span class="tag ok">display reset</span> 22P FPC pin 12。</td></tr>
             <tr><td>48</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td></tr>
             <tr><td>49</td><td><code>GND</code></td><td>接地</td><td><span class="tag">电源</span></td></tr>
@@ -861,23 +861,23 @@
           </thead>
           <tbody>
             <tr><td><code>PA_00</code></td><td>LCD QSPI Reset</td><td>22P FPC pin 12</td><td><span class="tag ok">display reset</span></td></tr>
-            <tr><td><code>PA_01</code></td><td>LCD 背光 PWM</td><td>22P FPC pin 2</td><td><span class="tag warn">未配置</span></td></tr>
+            <tr><td><code>PA_01</code></td><td>LCD 背光 PWM(名义)</td><td>22P FPC pin 2 → 屏侧 NC</td><td><span class="tag ok">已定论不建模</span></td></tr>
             <tr><td><code>PA_02</code> - <code>PA_08</code></td><td>LCD QSPI TE/CS/CLK/D0-D3</td><td>22P FPC</td><td><span class="tag ok">LCDC pinctrl</span></td></tr>
             <tr><td><code>PA_09</code></td><td>触摸 Reset</td><td>22P FPC pin 21</td><td><span class="tag warn">FT6146 disabled</span></td></tr>
             <tr><td><code>PA_10</code> / <code>PA_11</code></td><td>充电 IC I2C SCL/SDA</td><td>30P pin 30/29</td><td><span class="tag ok">I2C2 pinctrl</span></td></tr>
             <tr><td><code>PA_18</code> / <code>PA_19</code></td><td>Debug UART RX/TX</td><td>30P pin 27/25，USB 转串口</td><td><span class="tag ok">USART1 console</span></td></tr>
             <tr><td><code>PA_20</code></td><td>马达 PWM</td><td>30P pin 24；供电来自 <code>VDD33_VOUT</code></td><td><span class="tag warn">pwm-vibrator disabled</span></td></tr>
-            <tr><td><code>PA_24</code> / <code>PA_25</code> / <code>PA_28</code> / <code>PA_29</code></td><td>SPI1 / Micro SD</td><td>30P pin 20/22/21/19，TF 卡槽</td><td><span class="tag ok">SPI1 pinctrl</span></td></tr>
-            <tr><td><code>PA_27</code></td><td>SD_DET</td><td>30P pin 23，TF 卡槽检测</td><td><span class="tag">未配置</span></td></tr>
+            <tr><td><code>PA_24</code> / <code>PA_25</code> / <code>PA_28</code> / <code>PA_29</code></td><td>SPI1 / Micro SD</td><td>30P pin 20/22/21/19，TF 卡槽</td><td><span class="tag ok">SPI1 pinctrl + sdhc0 TF 卡节点;PA_29 为 GPIO 片选(cs-gpios)</span></td></tr>
+            <tr><td><code>PA_27</code></td><td>SD_DET</td><td>30P pin 23，TF 卡槽检测</td><td><span class="tag ok">已配置:sdhc0 的 cd-gpios(上拉,低有效)</span></td></tr>
             <tr><td><code>PA_30</code></td><td>Sensor power control</td><td>30P pin 18</td><td><span class="tag ok">gs_3v3 regulator</span></td></tr>
             <tr><td><code>PA_32</code></td><td>RGB LED data</td><td>30P pin 17，板载 RGB LED；VDD 来自 <code>VDD33_VOUT</code></td><td><span class="tag warn">led_strip disabled</span></td></tr>
             <tr><td><code>PA_33</code> / <code>PA_37</code></td><td>触摸 I2C SDA/SCL</td><td>22P FPC pin 19/20</td><td><span class="tag ok">I2C1 pinctrl</span></td></tr>
             <tr><td><code>PA_34</code></td><td>KEY1 / PWRKEY</td><td>30P pin 26，SW1</td><td><span class="tag ok">KEY1</span></td></tr>
-            <tr><td><code>PA_35</code> / <code>PA_36</code></td><td>USB DP/DM</td><td>30P pin 15/13</td><td><span class="tag">未配置</span></td></tr>
+            <tr><td><code>PA_35</code> / <code>PA_36</code></td><td>USB DP/DM</td><td>30P pin 15/13</td><td><span class="tag">未配置(SoC dtsi 无 usbd 节点)</span></td></tr>
             <tr><td><code>PA_39</code> / <code>PA_40</code></td><td>传感器 I2C SDA/SCL</td><td>30P pin 14/16，板上传感器</td><td><span class="tag ok">I2C3 pinctrl</span></td></tr>
             <tr><td><code>PA_41</code></td><td>触摸 INT</td><td>22P FPC pin 18</td><td><span class="tag warn">FT6146 disabled</span></td></tr>
             <tr><td><code>PA_43</code></td><td>KEY2</td><td>30P pin 28，SW2</td><td><span class="tag ok">KEY2</span></td></tr>
-            <tr><td><code>PA_44</code></td><td>VBUSDET</td><td>板内</td><td><span class="tag">VBUS detect</span></td></tr>
+            <tr><td><code>PA_44</code></td><td>VBUSDET</td><td>板内</td><td><span class="tag ok">已配置:zephyr,user 的 vbus-det-gpios</span></td></tr>
             <tr><td><code>PA_12</code> - <code>PA_17</code></td><td>模组内部 QSPI NOR / 可替代 SDIO</td><td>模组内部</td><td><span class="tag ok">MPI2 QSPI NOR</span></td></tr>
           </tbody>
         </table>
@@ -937,10 +937,10 @@
               <td>已改为 regulator，不再作为普通 LED 建模。</td>
             </tr>
             <tr>
-              <td>Backlight</td>
-              <td>未配置</td>
-              <td><code>PA01_LCD_BL_PWM</code>，22P FPC pin 2</td>
-              <td>如屏幕需要背光，添加 PWM 或 GPIO backlight 节点。</td>
+              <td>Backlight / PA_01</td>
+              <td>已定论不建模(2026-07-02)</td>
+              <td><code>PA01_LCD_BL_PWM</code>，22P FPC pin 2 → 屏侧 FPC pin 21</td>
+              <td>屏幕板 V1.1 网表证实屏侧悬空(NC),SDK 拉高该脚系无操作;结论见 co5300 节点注释。</td>
             </tr>
             <tr>
               <td>板上传感器</td>
@@ -949,10 +949,10 @@
               <td>总线和中断已建模；启用前需补齐/验证各 compatible、地址和驱动。</td>
             </tr>
             <tr>
-              <td>马达 / SD_DET / USB</td>
-              <td><code>PA20</code> 已建 <code>pwm-vibrator</code> 占位 disabled；<code>PA27</code>、<code>PA35/PA36</code> 暂未建生产节点</td>
-              <td>网表分别对应振动马达 PWM、TF 卡检测和 USB DP/DM</td>
-              <td>马达启用前确认 PWM 参数和启动电流；SD_DET/USB 按应用需求补 DTS 节点。</td>
+              <td>马达 / TF 卡 / 电池 / VBUS / USB</td>
+              <td><code>PA20</code> 已建 <code>pwm-vibrator</code> 占位 disabled；TF 卡 <code>sdhc0</code>/<code>sdmmc</code> + <code>PA27</code> cd-gpios、电池 <code>gpadc</code> channel@7、<code>PA44</code> vbus-det-gpios 均已建模(2026-07-02);<code>PA35/PA36</code> USB 仍未建</td>
+              <td>网表分别对应振动马达 PWM、TF 卡、VBAT 内部通道、VBUS 分压和 USB DP/DM</td>
+              <td>马达启用前确认 PWM 参数和启动电流;USB 待 SoC dtsi 补 usbd 节点。</td>
             </tr>
           </tbody>
         </table>
@@ -999,11 +999,11 @@
         <p>这份 HTML 记录了能从官方页、公开页、网表、BOM 和当前 DTS 直接确认的引脚与资源。下面这些信息建议后续从芯片手册、实物丝印或实际 I2C 扫描结果继续补齐。</p>
         <ul>
           <li>BOM 已确认传感器和外设型号为 <code>LSM6DS3TR-C</code>、<code>MMC5603NJ</code>、<code>LTR-303ALS-01</code>、<code>AW32001ECSR</code>、<code>WS2812B-2020</code>；后续需结合实物和驱动确认最终 compatible。</li>
-          <li>补充各 I2C 外设地址、中断极性和 Zephyr compatible。</li>
+          <li>各 I2C 外设地址与 compatible 已建模(FT6146@0x38、LSM6DSL@0x6a、MMC56x3@0x30、LTR329@0x29、AW32001@0x49);LTR-303 与 <code>liteon,ltr329</code> 的寄存器兼容性、AW32001 驱动仍待确认。</li>
           <li>确认 <code>PA_31</code> 传感器中断脚、<code>PA_30</code> 传感器电源控制脚的驱动时序。</li>
           <li>RGB LED 的可用驱动策略。</li>
-          <li>屏幕供电/背光使能的真实 GPIO 或固定电源关系。</li>
-          <li><code>FT6146-M00</code> 触摸 I2C 地址、Reset/INT 极性。</li>
+          <li>屏幕供电/背光使能:已由屏幕板 V1.1 网表定论——AMOLED 电源由屏模组内部电源 IC 自产,<code>PA_01</code> 屏侧悬空(NC),主控无供电/背光使能 GPIO。</li>
+          <li><code>FT6146-M00</code> 已建模:@0x38,RST PA_09 低有效,INT PA_41 低有效(节点 disabled 待 bring-up 实测)。</li>
         </ul>
       </div>
     </section>
