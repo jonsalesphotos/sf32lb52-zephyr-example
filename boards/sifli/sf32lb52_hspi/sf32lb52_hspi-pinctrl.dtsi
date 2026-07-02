@@ -46,8 +46,12 @@
 	};
 
 	spi1_default: spi1_default {
+		/* PA_29 (TF-card CS) is intentionally NOT muxed as SPI1_CS: it is
+		 * driven as a GPIO through the spi1 cs-gpios property so the SD
+		 * protocol can hold CS across multi-transfer commands.
+		 */
 		group1 {
-			pinmux = <PA24_SPI1_DIO>, <PA28_SPI1_CLK>, <PA29_SPI1_CS>;
+			pinmux = <PA24_SPI1_DIO>, <PA28_SPI1_CLK>;
 			input-enable;
 			input-schmitt-enable;
 		};
@@ -112,6 +116,15 @@
 			pinmux = <PA22_XTAL32K_XI>, <PA23_XTAL32K_XO>;
 			input-enable;
 		};
+	};
+
+	/*
+	 * Intentionally empty: only the internal VBAT channel (7) is used on
+	 * this board and it has no external pad. Every external GPADC-capable
+	 * pad (PA_28..PA_34 = CH0..CH6) already serves another board function.
+	 * The gpadc binding requires a pinctrl-0, so an empty state is given.
+	 */
+	gpadc_default: gpadc_default {
 	};
 };
 

@@ -1,0 +1,17 @@
+# Copyright (c) 2026 SiFli Technologies(Nanjing) Co., Ltd
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Awinic AW32001 single-cell linear battery charger, controlled over I2C
+  (address 0x49 on the LCKFB SF32LB52-HSPI / Huangshan Pi board).
+
+  Placeholder binding: no Zephyr driver consumes this compatible yet. It
+  exists so the board devicetree can describe the charger completely; the
+  node should stay disabled until a driver is available. Register-level
+  reference: SiFli-SDK customer/peripherals/charger/aw32001 and
+  sf32lb52-lchspi-ulp_base/bsp_power.c (CEB bit at reg 0x01 bit3, watchdog
+  disable at reg 0x05 bits 5-6).
+
+compatible: "awinic,aw32001"
+
+include: i2c-device.yaml
